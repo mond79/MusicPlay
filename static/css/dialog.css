@@ -1,0 +1,454 @@
+/* ═══════════════════════════════════
+   Music Play — 다이얼로그 스타일
+   노래 정보 (6탭) & 설정 다이얼로그
+   ═══════════════════════════════════ */
+
+/* ─── 오버레이 ─── */
+.dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    animation: overlayIn 0.2s ease;
+}
+
+@keyframes overlayIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ─── 노래 정보 다이얼로그 ─── */
+.song-info-dialog {
+    width: 580px;
+    max-height: 85vh;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: dialogIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes dialogIn {
+    from {
+        opacity: 0;
+        transform: scale(0.92) translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ─── 다이얼로그 헤더 ─── */
+.dialog-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px 24px 16px;
+}
+
+.dialog-song-preview {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+}
+
+.dialog-song-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+}
+
+.dialog-song-preview img.visible {
+    display: block;
+}
+
+.dialog-no-cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: var(--text-muted);
+    background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-elevated));
+}
+
+.dialog-song-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.dialog-song-info h3 {
+    font-size: 18px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dialog-song-info p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+}
+
+/* ─── 탭 네비게이션 ─── */
+.dialog-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+}
+
+.dialog-tab {
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.dialog-tab:hover {
+    color: var(--text-primary);
+}
+
+.dialog-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+/* ─── 탭 콘텐츠 ─── */
+.dialog-tab-content {
+    display: none;
+    padding: 20px 24px;
+    overflow-y: auto;
+    max-height: calc(85vh - 280px);
+    min-height: 300px;
+}
+
+.dialog-tab-content.active {
+    display: block;
+    animation: fadeIn 0.2s ease;
+}
+
+/* ─── 폼 그리드 ─── */
+.form-grid {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 10px 16px;
+    align-items: center;
+}
+
+.form-grid label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: right;
+    padding-right: 4px;
+}
+
+.form-grid input[type="text"],
+.form-grid input[type="number"],
+.form-grid select,
+.form-grid textarea {
+    width: 100%;
+    font-size: 13px;
+}
+
+.form-grid textarea {
+    resize: vertical;
+}
+
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-align: left !important;
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.checkbox-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.track-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.track-inputs input {
+    width: 70px;
+}
+
+.track-inputs span {
+    color: var(--text-tertiary);
+}
+
+/* ─── 별점 ─── */
+.rating-container {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.rating-star {
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--text-muted);
+    transition: color var(--transition-fast);
+    line-height: 1;
+}
+
+.rating-star:hover {
+    color: var(--warning);
+}
+
+.rating-star.filled {
+    color: var(--warning);
+}
+
+.rating-heart {
+    cursor: pointer;
+    margin-left: 8px;
+    color: var(--text-muted);
+    transition: color var(--transition-fast);
+}
+
+.rating-heart:hover {
+    color: var(--accent);
+}
+
+.rating-heart.liked {
+    color: var(--accent);
+}
+
+/* ─── 재생 횟수 행 ─── */
+.play-count-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+/* ─── 앨범 표지 탭 ─── */
+.artwork-container {
+    text-align: center;
+}
+
+.artwork-container h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.artwork-preview {
+    width: 300px;
+    height: 300px;
+    margin: 0 auto 20px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--surface);
+    box-shadow: var(--shadow-md);
+    position: relative;
+}
+
+.artwork-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+}
+
+.artwork-preview img.visible {
+    display: block;
+}
+
+.artwork-no-cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--bg-tertiary), #1a1a1a);
+}
+
+.artwork-actions {
+    display: flex;
+    justify-content: center;
+}
+
+/* ─── 가사 탭 ─── */
+.lyrics-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.lyrics-container textarea {
+    width: 100%;
+    min-height: 240px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.8;
+    resize: vertical;
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+}
+
+/* LRC 포맷 안내 박스 */
+.lyrics-format-hint {
+    background: rgba(252, 60, 68, 0.08);
+    border: 1px solid rgba(252, 60, 68, 0.2);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 12px;
+}
+
+.hint-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 6px;
+}
+
+.lyrics-format-hint p {
+    color: var(--text-secondary);
+    line-height: 1.8;
+    font-size: 12px;
+}
+
+.lyrics-format-hint code {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--text-primary);
+}
+
+/* ─── 옵션 탭 ─── */
+.options-form {
+    grid-template-columns: 120px 1fr;
+}
+
+.volume-adjust {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+}
+
+.volume-adjust input[type="range"] {
+    flex: 1;
+    accent-color: var(--accent);
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.volume-adjust input[type="range"]:focus {
+    box-shadow: none;
+}
+
+/* ─── 파일 정보 탭 ─── */
+.file-info-grid {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 12px 16px;
+    align-items: center;
+}
+
+.file-info-grid label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+.file-val {
+    font-size: 13px;
+    color: var(--text-primary);
+    word-break: break-all;
+}
+
+/* ─── 다이얼로그 푸터 ─── */
+.dialog-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+}
+
+.dialog-nav {
+    display: flex;
+    gap: 4px;
+}
+
+.dialog-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ─── 설정 다이얼로그 ─── */
+.settings-dialog {
+    width: 520px;
+    max-height: 70vh;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+    animation: dialogIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dialog-header-simple {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.dialog-header-simple h3 {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.settings-content {
+    max-height: calc(70vh - 70px);
+    overflow-y: auto;
+}

@@ -1,0 +1,21 @@
+# Python dependencies
+__pycache__/
+*.py[cod]
+*$py.class
+
+# User Data & Covers (DO NOT UPLOAD)
+data/
+music.db
+
+# Test folders
+test_music/
+
+# Virtual Environments
+venv/
+env/
+.env
+
+# Editor/OS settings
+.vscode/
+.idea/
+.DS_Store

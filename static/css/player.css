@@ -1,0 +1,337 @@
+/* ═══════════════════════════════════
+   Music Play — 플레이어 바 스타일
+   ═══════════════════════════════════ */
+
+#player-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--player-height);
+    background: rgba(18, 18, 18, 0.92);
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 100;
+}
+
+/* ─── 현재 재생 곡 정보 ─── */
+.player-now-playing {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.player-cover-container {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--surface);
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform var(--transition-fast);
+}
+
+.player-cover-container:hover {
+    transform: scale(1.05);
+}
+
+.player-cover-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+}
+
+.player-cover-container img.visible {
+    display: block;
+}
+
+.player-no-cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: var(--text-muted);
+}
+
+.player-song-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 2px;
+}
+
+.player-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: color var(--transition-fast);
+}
+
+.player-title:hover {
+    text-decoration: underline;
+}
+
+.player-artist {
+    font-size: 11px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+.player-artist:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
+}
+
+.btn-like {
+    color: var(--text-muted);
+    margin-left: 4px;
+}
+
+.btn-like:hover {
+    color: var(--accent);
+}
+
+.btn-like.liked {
+    color: var(--accent);
+}
+
+.btn-like.liked svg {
+    fill: var(--accent);
+}
+
+/* ─── 중앙 컨트롤 ─── */
+.player-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 0;
+}
+
+.player-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.btn-shuffle, .btn-repeat {
+    color: var(--text-tertiary);
+    transition: color var(--transition-fast);
+}
+
+.btn-shuffle:hover, .btn-repeat:hover {
+    color: var(--text-primary);
+}
+
+.btn-shuffle.active, .btn-repeat.active {
+    color: var(--accent);
+}
+
+.btn-shuffle.active::after, .btn-repeat.active::after {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.btn-shuffle, .btn-repeat {
+    position: relative;
+}
+
+.btn-prev, .btn-next {
+    color: var(--text-secondary);
+    transition: color var(--transition-fast);
+}
+
+.btn-prev:hover, .btn-next:hover {
+    color: var(--text-primary);
+}
+
+.btn-play {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.btn-play:hover {
+    transform: scale(1.06);
+    background: #ffffff;
+}
+
+.btn-play:active {
+    transform: scale(0.96);
+}
+
+/* ─── 진행 바 ─── */
+.player-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 600px;
+}
+
+.time-display {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+    min-width: 36px;
+    text-align: center;
+}
+
+.progress-bar-container {
+    flex: 1;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    position: relative;
+    transition: height var(--transition-fast);
+}
+
+.progress-bar-container:hover .progress-bar-bg {
+    height: 6px;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--text-primary);
+    border-radius: 2px;
+    position: relative;
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+.progress-bar-container:hover .progress-bar-fill {
+    background: var(--accent);
+}
+
+.progress-bar-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--text-primary);
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.progress-bar-container:hover .progress-bar-thumb {
+    opacity: 1;
+}
+
+/* ─── 오른쪽 컨트롤 ─── */
+.player-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.volume-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-volume {
+    color: var(--text-tertiary);
+}
+
+.btn-volume:hover {
+    color: var(--text-primary);
+}
+
+.volume-slider-container {
+    width: 90px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.volume-bar-bg {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    position: relative;
+}
+
+.volume-bar-fill {
+    height: 100%;
+    background: var(--text-primary);
+    border-radius: 2px;
+    width: 100%;
+}
+
+.volume-bar-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--text-primary);
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.volume-slider-container:hover .volume-bar-thumb {
+    opacity: 1;
+}
+
+/* ─── 반복 모드 표시 ─── */
+.btn-repeat[data-mode="one"]::before {
+    content: '1';
+    position: absolute;
+    font-size: 8px;
+    font-weight: 700;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}

@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Apple Music 스타일 데스크톱 음악 플레이어">
+    <title>Music Play — 음악 플레이어</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/player.css">
+    <link rel="stylesheet" href="/static/css/dialog.css">
+    <link rel="stylesheet" href="/static/css/context-menu.css">
+</head>
+<body>
+    <div id="app">
+        <!-- ═══ 사이드바 ═══ -->
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                        <path d="M12 2C12 2 12 8 12 12" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+                    </svg>
+                    <h1>Music Play</h1>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <h3 class="nav-section-title">보관함</h3>
+                    <a href="#" class="nav-item active" data-view="songs" id="nav-songs">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                        <span>노래</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="albums" id="nav-albums">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>
+                        <span>앨범</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="artists" id="nav-artists">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <span>아티스트</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="liked" id="nav-liked">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        <span>좋아하는 노래</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-header">
+                        <h3 class="nav-section-title">플레이리스트</h3>
+                        <button class="btn-icon" id="btn-create-playlist" title="새 플레이리스트">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        </button>
+                    </div>
+                    <div id="playlist-list"></div>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="btn-icon-text" id="btn-settings" title="설정">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span>설정</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- ═══ 메인 콘텐츠 ═══ -->
+        <main id="main-content">
+            <div id="dynamic-bg" class="dynamic-bg"></div>
+
+            <header id="top-bar">
+                <div class="top-bar-left">
+                    <button class="btn-icon" id="btn-back" title="뒤로">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <button class="btn-icon" id="btn-forward" title="앞으로">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                </div>
+                <div class="search-container">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="search" id="search-input" placeholder="검색" autocomplete="off">
+                </div>
+            </header>
+
+            <div id="content-area">
+                <!-- 환영 화면 (처음 사용 시) -->
+                <div id="welcome-screen" class="welcome-screen">
+                    <div class="welcome-content">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.5">
+                            <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+                        </svg>
+                        <h2>Music Play에 오신 것을 환영합니다</h2>
+                        <p>음악 폴더를 추가하여 시작하세요</p>
+                        <button class="btn-primary" id="btn-add-folder-welcome">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+                            음악 폴더 추가
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 로딩 화면 -->
+                <div id="loading-screen" class="loading-screen hidden">
+                    <div class="loading-spinner"></div>
+                    <p id="loading-text">음악 라이브러리를 불러오는 중...</p>
+                </div>
+
+                <!-- 노래 뷰 -->
+                <div id="view-songs" class="view hidden">
+                    <div class="view-header">
+                        <h2>노래</h2>
+                        <span class="view-count" id="songs-count"></span>
+                    </div>
+                    <div class="song-list-header">
+                        <div class="col-num">#</div>
+                        <div class="col-title">제목</div>
+                        <div class="col-artist">아티스트</div>
+                        <div class="col-album">앨범</div>
+                        <div class="col-genre">장르</div>
+                        <div class="col-year">연도</div>
+                        <div class="col-duration">시간</div>
+                        <div class="col-plays">재생</div>
+                        <div class="col-like">♥</div>
+                    </div>
+                    <div id="songs-list" class="song-list"></div>
+                </div>
+
+                <!-- 앨범 뷰 -->
+                <div id="view-albums" class="view hidden">
+                    <div class="view-header">
+                        <h2>앨범</h2>
+                        <span class="view-count" id="albums-count"></span>
+                    </div>
+                    <div id="albums-grid" class="albums-grid"></div>
+                </div>
+
+                <!-- 앨범 상세 뷰 -->
+                <div id="view-album-detail" class="view hidden">
+                    <div class="album-detail-header">
+                        <div class="album-detail-cover">
+                            <img id="album-detail-img" src="" alt="앨범 커버">
+                        </div>
+                        <div class="album-detail-info">
+                            <h2 id="album-detail-name"></h2>
+                            <p id="album-detail-artist" class="album-detail-artist"></p>
+                            <p id="album-detail-meta" class="album-detail-meta"></p>
+                            <div class="album-detail-actions">
+                                <button class="btn-primary btn-play-all" id="btn-play-album">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                    재생
+                                </button>
+                                <button class="btn-secondary btn-shuffle-all" id="btn-shuffle-album">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+                                    셔플
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="song-list-header">
+                        <div class="col-num">#</div>
+                        <div class="col-title">제목</div>
+                        <div class="col-artist">아티스트</div>
+                        <div class="col-duration">시간</div>
+                        <div class="col-plays">재생</div>
+                        <div class="col-like">♥</div>
+                    </div>
+                    <div id="album-detail-songs" class="song-list"></div>
+                </div>
+
+                <!-- 아티스트 뷰 -->
+                <div id="view-artists" class="view hidden">
+                    <div class="view-header">
+                        <h2>아티스트</h2>
+                        <span class="view-count" id="artists-count"></span>
+                    </div>
+                    <div id="artists-grid" class="artists-grid"></div>
+                </div>
+
+                <!-- 아티스트 상세 뷰 -->
+                <div id="view-artist-detail" class="view hidden">
+                    <div class="artist-detail-header">
+                        <div class="artist-avatar">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <div class="artist-detail-info">
+                            <h2 id="artist-detail-name"></h2>
+                            <p id="artist-detail-meta"></p>
+                        </div>
+                    </div>
+                    <div class="song-list-header">
+                        <div class="col-num">#</div>
+                        <div class="col-title">제목</div>
+                        <div class="col-album">앨범</div>
+                        <div class="col-duration">시간</div>
+                        <div class="col-plays">재생</div>
+                        <div class="col-like">♥</div>
+                    </div>
+                    <div id="artist-detail-songs" class="song-list"></div>
+                </div>
+
+                <!-- 좋아하는 노래 뷰 -->
+                <div id="view-liked" class="view hidden">
+                    <div class="view-header">
+                        <h2>좋아하는 노래</h2>
+                        <span class="view-count" id="liked-count"></span>
+                    </div>
+                    <div class="song-list-header">
+                        <div class="col-num">#</div>
+                        <div class="col-title">제목</div>
+                        <div class="col-artist">아티스트</div>
+                        <div class="col-album">앨범</div>
+                        <div class="col-duration">시간</div>
+                        <div class="col-like">♥</div>
+                    </div>
+                    <div id="liked-songs-list" class="song-list"></div>
+                </div>
+
+                <!-- 플레이리스트 뷰 -->
+                <div id="view-playlist" class="view hidden">
+                    <div class="view-header">
+                        <h2 id="playlist-view-name"></h2>
+                        <span class="view-count" id="playlist-count"></span>
+                    </div>
+                    <div class="song-list-header">
+                        <div class="col-num">#</div>
+                        <div class="col-title">제목</div>
+                        <div class="col-artist">아티스트</div>
+                        <div class="col-album">앨범</div>
+                        <div class="col-duration">시간</div>
+                        <div class="col-like">♥</div>
+                    </div>
+                    <div id="playlist-songs-list" class="song-list"></div>
+                </div>
+
+                <!-- 검색 결과 뷰 -->
+                <div id="view-search" class="view hidden">
+                    <div class="view-header">
+                        <h2>검색 결과</h2>
+                        <span class="view-count" id="search-count"></span>
+                    </div>
+                    <div class="song-list-header">
+                        <div class="col-num">#</div>
+                        <div class="col-title">제목</div>
+                        <div class="col-artist">아티스트</div>
+                        <div class="col-album">앨범</div>
+                        <div class="col-duration">시간</div>
+                        <div class="col-like">♥</div>
+                    </div>
+                    <div id="search-results" class="song-list"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ═══ 재생 큐 패널 ═══ -->
+        <aside id="queue-panel" class="queue-panel hidden">
+            <div class="queue-header">
+                <h3>재생 대기열</h3>
+                <button class="btn-icon" id="btn-close-queue">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="queue-now-playing">
+                <h4>현재 재생 중</h4>
+                <div id="queue-current"></div>
+            </div>
+            <div class="queue-upcoming">
+                <h4>다음 재생</h4>
+                <div id="queue-list"></div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- ═══ 플레이어 바 ═══ -->
+    <footer id="player-bar">
+        <div class="player-now-playing">
+            <div class="player-cover-container" id="player-cover-container">
+                <img id="player-cover" src="" alt="">
+                <div class="player-no-cover">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                </div>
+            </div>
+            <div class="player-song-info">
+                <span class="player-title" id="player-title">재생 중인 곡이 없습니다</span>
+                <span class="player-artist" id="player-artist"></span>
+            </div>
+            <button class="btn-icon btn-like" id="player-like-btn" title="좋아요">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+        </div>
+
+        <div class="player-center">
+            <div class="player-controls">
+                <button class="btn-icon btn-shuffle" id="btn-shuffle" title="셔플">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+                </button>
+                <button class="btn-icon btn-prev" id="btn-prev" title="이전 곡">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19 20L9 12l10-8v16zM7 19V5H5v14h2z"/></svg>
+                </button>
+                <button class="btn-play" id="btn-play" title="재생">
+                    <svg id="icon-play" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <svg id="icon-pause" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                </button>
+                <button class="btn-icon btn-next" id="btn-next" title="다음 곡">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M5 4l10 8-10 8V4zM17 5v14h2V5h-2z"/></svg>
+                </button>
+                <button class="btn-icon btn-repeat" id="btn-repeat" title="반복">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                </button>
+            </div>
+            <div class="player-progress">
+                <span class="time-display" id="current-time">0:00</span>
+                <div class="progress-bar-container" id="progress-container">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progress-fill"></div>
+                        <div class="progress-bar-thumb" id="progress-thumb"></div>
+                    </div>
+                </div>
+                <span class="time-display" id="total-time">0:00</span>
+            </div>
+        </div>
+
+        <div class="player-right">
+            <button class="btn-icon" id="btn-lyrics" title="가사">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </button>
+            <button class="btn-icon" id="btn-queue" title="재생 대기열">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </button>
+            <div class="volume-container">
+                <button class="btn-icon btn-volume" id="btn-volume" title="볼륨">
+                    <svg id="icon-volume-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                    <svg id="icon-volume-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="hidden"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                </button>
+                <div class="volume-slider-container">
+                    <div class="volume-bar-bg" id="volume-container">
+                        <div class="volume-bar-fill" id="volume-fill"></div>
+                        <div class="volume-bar-thumb" id="volume-thumb"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ═══ 우클릭 메뉴 ═══ -->
+    <div id="context-menu" class="context-menu hidden">
+        <ul>
+            <li class="context-item has-submenu" id="ctx-add-to-playlist">
+                <span>플레이리스트에 추가</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                <ul class="submenu" id="ctx-playlist-submenu"></ul>
+            </li>
+            <li class="context-divider"></li>
+            <li class="context-item" id="ctx-play-next">
+                <span>바로 다음 재생</span>
+            </li>
+            <li class="context-item" id="ctx-play-last">
+                <span>맨 나중에 재생</span>
+            </li>
+            <li class="context-divider"></li>
+            <li class="context-item" id="ctx-song-info">
+                <span>노래 정보</span>
+            </li>
+            <li class="context-divider"></li>
+            <li class="context-item" id="ctx-like">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span>좋아요</span>
+            </li>
+            <li class="context-item" id="ctx-dislike">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17" transform="scale(1,-1) translate(0,-24)"/></svg>
+                <span>나빠요</span>
+            </li>
+            <li class="context-divider"></li>
+            <li class="context-item" id="ctx-go-album">
+                <span>보관함에서 앨범 보기</span>
+            </li>
+            <li class="context-item" id="ctx-copy">
+                <span>복사</span>
+            </li>
+            <li class="context-divider"></li>
+            <li class="context-item" id="ctx-remove-playlist" style="display:none">
+                <span>플레이리스트에서 제거</span>
+            </li>
+            <li class="context-item context-danger" id="ctx-delete">
+                <span>보관함에서 삭제</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- ═══ 노래 정보 다이얼로그 ═══ -->
+    <div id="song-info-overlay" class="dialog-overlay hidden">
+        <div id="song-info-dialog" class="song-info-dialog">
+            <div class="dialog-header">
+                <div class="dialog-song-preview">
+                    <img id="dialog-cover" src="" alt="">
+                    <div class="dialog-no-cover">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                    </div>
+                </div>
+                <div class="dialog-song-info">
+                    <h3 id="dialog-title"></h3>
+                    <p id="dialog-artist"></p>
+                    <p id="dialog-album"></p>
+                </div>
+            </div>
+
+            <div class="dialog-tabs">
+                <button class="dialog-tab active" data-tab="details">세부사항</button>
+                <button class="dialog-tab" data-tab="artwork">앨범 표지</button>
+                <button class="dialog-tab" data-tab="lyrics">가사</button>
+                <button class="dialog-tab" data-tab="options">옵션</button>
+                <button class="dialog-tab" data-tab="sorting">정렬</button>
+                <button class="dialog-tab" data-tab="file">파일</button>
+            </div>
+
+            <!-- 탭 1: 세부사항 -->
+            <div class="dialog-tab-content active" data-tab="details">
+                <div class="form-grid">
+                    <label>노래</label><input type="text" id="info-title">
+                    <label>아티스트</label><input type="text" id="info-artist">
+                    <label>앨범</label><input type="text" id="info-album">
+                    <label>앨범 아티스트</label><input type="text" id="info-album-artist">
+                    <label>작곡가</label><input type="text" id="info-composer">
+                    <label class="checkbox-row" style="grid-column: 1 / -1">
+                        <input type="checkbox" id="info-show-composer"> 모든 보기에서 작곡가 표시
+                    </label>
+                    <label>그룹 짓기</label><input type="text" id="info-grouping">
+                    <label>장르</label>
+                    <select id="info-genre">
+                        <option value="">선택...</option>
+                        <option>Alternative</option><option>Blues</option><option>Classical</option>
+                        <option>Country</option><option>Dance</option><option>Electronic</option>
+                        <option>Hip-Hop/Rap</option><option>Jazz</option><option>K-Pop</option>
+                        <option>Latin</option><option>Metal</option><option>Pop</option>
+                        <option>R&B/Soul</option><option>Reggae</option><option>Rock</option>
+                        <option>Soundtrack</option><option>Trot</option><option>World</option>
+                    </select>
+                    <label>연도</label><input type="number" id="info-year" min="1900" max="2099">
+                    <label>트랙</label>
+                    <div class="track-inputs">
+                        <input type="number" id="info-track-num" min="0" placeholder="번호">
+                        <span>/</span>
+                        <input type="number" id="info-track-total" min="0" placeholder="전체">
+                    </div>
+                    <label>디스크 번호</label>
+                    <div class="track-inputs">
+                        <input type="number" id="info-disc-num" min="0" placeholder="번호">
+                        <span>/</span>
+                        <input type="number" id="info-disc-total" min="0" placeholder="전체">
+                    </div>
+                    <label class="checkbox-row" style="grid-column: 1 / -1">
+                        <input type="checkbox" id="info-compilation"> 컴필레이션 앨범 — 여러 아티스트가 부른 노래로 구성된 컴필레이션 앨범임
+                    </label>
+                    <label>선호도</label>
+                    <div class="rating-container" id="info-rating"></div>
+                    <label>bpm</label><input type="number" id="info-bpm" min="0">
+                    <label>재생 횟수</label>
+                    <div class="play-count-row">
+                        <span id="info-play-count">0</span>
+                        <span id="info-last-played" class="text-muted"></span>
+                        <button class="btn-small" id="info-reset-plays">재설정</button>
+                    </div>
+                    <label>주석</label><textarea id="info-comment" rows="3"></textarea>
+                </div>
+            </div>
+
+            <!-- 탭 2: 앨범 표지 -->
+            <div class="dialog-tab-content" data-tab="artwork">
+                <div class="artwork-container">
+                    <h4>앨범 표지</h4>
+                    <div class="artwork-preview">
+                        <img id="info-artwork" src="" alt="">
+                        <div class="artwork-no-cover" id="artwork-no-cover">
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="4"/></svg>
+                        </div>
+                    </div>
+                    <div class="artwork-actions">
+                        <button class="btn-secondary" id="btn-add-artwork">앨범 표지 추가</button>
+                        <input type="file" id="artwork-file-input" accept="image/*" style="display:none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 탭 3: 가사 -->
+            <div class="dialog-tab-content" data-tab="lyrics">
+                <div class="lyrics-container">
+                    <div class="lyrics-format-hint">
+                        <div class="hint-header">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            <span>실시간 싱크 가사 (LRC 형식)</span>
+                        </div>
+                        <p>타임코드를 포함하면 노래와 함께 가사가 자동으로 싱크됩니다:<br>
+                        <code>[00:12.34]가사 첫 번째 줄</code><br>
+                        <code>[00:16.78]두 번째 줄</code><br>
+                        타임코드 없이 입력하면 일반 가사로 표시됩니다.</p>
+                    </div>
+                    <textarea id="info-lyrics" rows="16" placeholder="가사를 입력하세요...&#10;&#10;LRC 싱크 가사 형식:&#10;[00:12.34]가사 첫 번째 줄&#10;[00:16.78]두 번째 줄&#10;[01:05.00]후렴구..."></textarea>
+                    <label class="checkbox-row">
+                        <input type="checkbox" id="info-custom-lyrics"> 사용자 설정 가사
+                    </label>
+                </div>
+            </div>
+
+            <!-- 탭 4: 옵션 -->
+            <div class="dialog-tab-content" data-tab="options">
+                <div class="form-grid options-form">
+                    <label>미디어 종류</label>
+                    <select id="info-media-kind">
+                        <option value="음악">음악</option>
+                        <option value="팟캐스트">팟캐스트</option>
+                        <option value="오디오북">오디오북</option>
+                        <option value="뮤직비디오">뮤직비디오</option>
+                    </select>
+                    <label>
+                        <input type="checkbox" id="info-start-check"> 시작
+                    </label>
+                    <input type="text" id="info-start-time" placeholder="0:00" disabled>
+                    <label>
+                        <input type="checkbox" id="info-stop-check"> 중단
+                    </label>
+                    <input type="text" id="info-stop-time" placeholder="0:00" disabled>
+                    <label class="checkbox-row" style="grid-column: 1 / -1">
+                        재생 <input type="checkbox" id="info-remember-pos"> 재생 위치 기억
+                    </label>
+                    <label class="checkbox-row" style="grid-column: 1 / -1">
+                        <input type="checkbox" id="info-skip-shuffle"> 임의 재생 동안에 건너뛰기
+                    </label>
+                    <label>볼륨 조절</label>
+                    <div class="volume-adjust">
+                        <span>-100%</span>
+                        <input type="range" id="info-volume-adj" min="-100" max="100" value="0">
+                        <span>+100%</span>
+                    </div>
+                    <label>이퀄라이저</label>
+                    <select id="info-equalizer">
+                        <option value="">없음</option>
+                        <option>Bass Booster</option>
+                        <option>Bass Reducer</option>
+                        <option>Classical</option>
+                        <option>Dance</option>
+                        <option>Deep</option>
+                        <option>Electronic</option>
+                        <option>Flat</option>
+                        <option>Hip-Hop</option>
+                        <option>Jazz</option>
+                        <option>Latin</option>
+                        <option>Loudness</option>
+                        <option>Lounge</option>
+                        <option>Piano</option>
+                        <option>Pop</option>
+                        <option>R&B</option>
+                        <option>Rock</option>
+                        <option>Small Speakers</option>
+                        <option>Spoken Word</option>
+                        <option>Treble Booster</option>
+                        <option>Treble Reducer</option>
+                        <option>Vocal Booster</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 탭 5: 정렬 -->
+            <div class="dialog-tab-content" data-tab="sorting">
+                <div class="form-grid">
+                    <label>정렬 노래명</label><input type="text" id="info-sort-title" placeholder="정렬에 사용할 노래 제목">
+                    <label>정렬 아티스트</label><input type="text" id="info-sort-artist" placeholder="정렬에 사용할 아티스트명">
+                    <label>정렬 앨범</label><input type="text" id="info-sort-album" placeholder="정렬에 사용할 앨범명">
+                    <label>정렬 앨범 아티스트</label><input type="text" id="info-sort-album-artist" placeholder="정렬에 사용할 앨범 아티스트명">
+                </div>
+            </div>
+
+            <!-- 탭 6: 파일 -->
+            <div class="dialog-tab-content" data-tab="file">
+                <div class="file-info-grid">
+                    <label>파일 경로</label><span id="info-file-path" class="file-val"></span>
+                    <label>파일 크기</label><span id="info-file-size" class="file-val"></span>
+                    <label>형식</label><span id="info-file-format" class="file-val"></span>
+                    <label>비트레이트</label><span id="info-file-bitrate" class="file-val"></span>
+                    <label>샘플레이트</label><span id="info-file-samplerate" class="file-val"></span>
+                    <label>채널</label><span id="info-file-channels" class="file-val"></span>
+                    <label>재생시간</label><span id="info-file-duration" class="file-val"></span>
+                </div>
+            </div>
+
+            <div class="dialog-footer">
+                <div class="dialog-nav">
+                    <button class="btn-icon" id="dialog-prev" title="이전 곡">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <button class="btn-icon" id="dialog-next" title="다음 곡">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                </div>
+                <div class="dialog-actions">
+                    <button class="btn-secondary" id="dialog-cancel">취소</button>
+                    <button class="btn-primary" id="dialog-save">확인</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ 설정 다이얼로그 ═══ -->
+    <div id="settings-overlay" class="dialog-overlay hidden">
+        <div id="settings-dialog" class="settings-dialog">
+            <div class="dialog-header-simple">
+                <h3>설정</h3>
+                <button class="btn-icon" id="btn-close-settings">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="settings-content">
+                <div class="settings-section">
+                    <h4>음악 폴더</h4>
+                    <p class="settings-desc">음악 파일이 저장된 폴더를 추가하세요. 폴더 안의 모든 하위 폴더도 스캔됩니다.</p>
+                    <div id="folder-list" class="folder-list"></div>
+                    <div class="folder-add-row" style="display: flex; gap: 8px;">
+                        <input type="text" id="folder-path-input" placeholder="폴더 경로를 찾아보거나 입력하세요 (예: C:\Music)" style="flex: 1;">
+                        <button class="btn-secondary" id="btn-browse-folder">찾아보기...</button>
+                        <button class="btn-primary" id="btn-add-folder">추가</button>
+                    </div>
+                    <button class="btn-secondary" id="btn-scan-all" style="margin-top: 12px; width: 100%;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        라이브러리 다시 스캔
+                    </button>
+                    <button class="btn-secondary" id="btn-reset-library" style="margin-top: 8px; width: 100%; color: var(--error); border-color: var(--error);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        보관함 완전 초기화 (모든 곡 지우기)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ 가사 패널 ═══ -->
+    <div id="lyrics-panel" class="lyrics-panel hidden">
+        <div class="lyrics-panel-header">
+            <h3>가사</h3>
+            <button class="btn-icon" id="btn-close-lyrics">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="lyrics-content" id="lyrics-content">
+            <p class="lyrics-placeholder">가사가 없습니다</p>
+        </div>
+    </div>
+
+    <!-- ═══ 오디오 요소 ═══ -->
+    <audio id="audio-element" preload="auto"></audio>
+
+    <!-- ═══ JavaScript ═══ -->
+    <script src="/static/js/color-theme.js?v=5"></script>
+    <script src="/static/js/player.js?v=5"></script>
+    <script src="/static/js/library.js?v=5"></script>
+    <script src="/static/js/context-menu.js?v=5"></script>
+    <script src="/static/js/song-info.js?v=5"></script>
+    <script src="/static/js/playlist.js?v=5"></script>
+    <script src="/static/js/app.js?v=5"></script>
+</body>
+</html>

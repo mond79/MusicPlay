@@ -1,0 +1,372 @@
+/**
+ * Music Play — 라이브러리 UI 모듈
+ * 노래, 앨범, 아티스트 뷰를 렌더링합니다.
+ */
+
+const Library = {
+    songs: [],
+    albums: [],
+    artists: [],
+
+    async loadSongs() {
+        try {
+            const res = await fetch('/api/songs');
+            this.songs = await res.json();
+            return this.songs;
+        } catch (e) {
+            console.error('노래 로딩 오류:', e);
+            return [];
+        }
+    },
+
+    async loadAlbums() {
+        try {
+            const res = await fetch('/api/albums');
+            this.albums = await res.json();
+            return this.albums;
+        } catch (e) {
+            console.error('앨범 로딩 오류:', e);
+            return [];
+        }
+    },
+
+    async loadArtists() {
+        try {
+            const res = await fetch('/api/artists');
+            this.artists = await res.json();
+            return this.artists;
+        } catch (e) {
+            console.error('아티스트 로딩 오류:', e);
+            return [];
+        }
+    },
+
+    // ─── 노래 뷰 ───
+
+    renderSongs(songs, container, options = {}) {
+        const { showAlbum = true, showGenre = true, showYear = true,
+                showPlays = true, playlistId = null, contextType = 'library' } = options;
+
+        if (!container) return;
+        container.innerHTML = '';
+
+        songs.forEach((song, index) => {
+            const item = document.createElement('div');
+            item.className = 'song-item';
+            item.dataset.songId = song.id;
+            item.dataset.index = index;
+
+            if (Player.currentSong() && Player.currentSong().id === song.id) {
+                item.classList.add('playing');
+            }
+
+            let cols = '';
+
+            // 번호
+            cols += `<div class="song-num">${index + 1}</div>`;
+
+            // 제목 + 미니 커버
+            cols += `
+                <div class="song-title-cell">
+                    <img class="song-mini-cover" src="/api/songs/${song.id}/cover" alt=""
+                         onerror="this.style.background='var(--surface)'; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23555%22 stroke-width=%221.5%22><path d=%22M9 18V5l12-2v13%22/><circle cx=%226%22 cy=%2218%22 r=%223%22/><circle cx=%2218%22 cy=%2216%22 r=%223%22/></svg>'">
+                    <span class="song-title">${this._escapeHtml(song.title || '알 수 없는 곡')}</span>
+                </div>
+            `;
+
+            // 아티스트
+            cols += `<div class="song-cell">${this._escapeHtml(song.artist)}</div>`;
+
+            // 앨범 (조건부)
+            if (showAlbum) {
+                cols += `<div class="song-cell">${this._escapeHtml(song.album)}</div>`;
+            }
+
+            // 장르 (조건부)
+            if (showGenre) {
+                cols += `<div class="song-cell">${this._escapeHtml(song.genre)}</div>`;
+            }
+
+            // 연도 (조건부)
+            if (showYear) {
+                cols += `<div class="song-cell">${song.year || ''}</div>`;
+            }
+
+            // 시간
+            cols += `<div class="song-duration">${this._formatTime(song.duration)}</div>`;
+
+            // 재생횟수 (조건부)
+            if (showPlays) {
+                cols += `<div class="song-plays">${song.play_count || ''}</div>`;
+            }
+
+            // 좋아요
+            const likeClass = song.liked ? 'liked' : '';
+            const likeFill = song.liked ? 'var(--accent)' : 'none';
+            cols += `
+                <button class="song-like-btn ${likeClass}" data-song-id="${song.id}" title="좋아요">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="${likeFill}" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                </button>
+            `;
+
+            item.innerHTML = cols;
+
+            // 더블클릭으로 재생
+            item.addEventListener('dblclick', () => {
+                Player.play(song, songs, index);
+            });
+
+            // 우클릭 메뉴
+            item.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                ContextMenu.show(e, song, { playlistId, contextType, songs, index });
+            });
+
+            // 좋아요 버튼 클릭
+            const likeBtn = item.querySelector('.song-like-btn');
+            likeBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const res = await fetch(`/api/songs/${song.id}/like`, { method: 'POST' });
+                const data = await res.json();
+                song.liked = data.liked;
+                song.disliked = 0;
+                this.updateSongLike(song.id, data.liked);
+            });
+
+            container.appendChild(item);
+        });
+    },
+
+    showSongsView() {
+        this._hideAllViews();
+        const view = document.getElementById('view-songs');
+        view.classList.remove('hidden');
+        document.getElementById('songs-count').textContent = `${this.songs.length}곡`;
+
+        const container = document.getElementById('songs-list');
+        this.renderSongs(this.songs, container);
+    },
+
+    // ─── 앨범 뷰 ───
+
+    renderAlbums() {
+        this._hideAllViews();
+        const view = document.getElementById('view-albums');
+        view.classList.remove('hidden');
+        document.getElementById('albums-count').textContent = `${this.albums.length}개`;
+
+        const grid = document.getElementById('albums-grid');
+        grid.innerHTML = '';
+
+        this.albums.forEach(album => {
+            const card = document.createElement('div');
+            card.className = 'album-card';
+
+            card.innerHTML = `
+                <div class="album-cover">
+                    <img src="/api/songs/${album.first_song_id}/cover" alt="${this._escapeHtml(album.album)}"
+                         onerror="this.parentElement.innerHTML='<div class=\\'album-no-cover\\'><svg width=\\'48\\' height=\\'48\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23555\\' stroke-width=\\'1\\'><rect x=\\'3\\' y=\\'3\\' width=\\'18\\' height=\\'18\\' rx=\\'2\\'/><circle cx=\\'12\\' cy=\\'12\\' r=\\'4\\'/><circle cx=\\'12\\' cy=\\'12\\' r=\\'1\\'/></svg></div>'">
+                    <div class="play-overlay">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                    </div>
+                </div>
+                <div class="album-info">
+                    <div class="album-name">${this._escapeHtml(album.album)}</div>
+                    <div class="album-artist-name">${this._escapeHtml(album.album_artist || album.artist)}</div>
+                </div>
+            `;
+
+            card.addEventListener('click', () => {
+                this.showAlbumDetail(album.album, album.album_artist || album.artist);
+            });
+
+            grid.appendChild(card);
+        });
+    },
+
+    async showAlbumDetail(albumName, artistName) {
+        this._hideAllViews();
+        const view = document.getElementById('view-album-detail');
+        view.classList.remove('hidden');
+
+        // 앨범 정보
+        const res = await fetch(`/api/albums/${encodeURIComponent(albumName)}?artist=${encodeURIComponent(artistName)}`);
+        const songs = await res.json();
+
+        if (songs.length === 0) return;
+
+        const firstSong = songs[0];
+
+        document.getElementById('album-detail-name').textContent = albumName;
+        document.getElementById('album-detail-artist').textContent = artistName;
+
+        const totalDuration = songs.reduce((s, song) => s + (song.duration || 0), 0);
+        const year = firstSong.year || '';
+        document.getElementById('album-detail-meta').textContent =
+            `${year ? year + ' · ' : ''}${songs.length}곡 · ${this._formatTime(totalDuration)}`;
+
+        const img = document.getElementById('album-detail-img');
+        img.src = `/api/songs/${firstSong.id}/cover`;
+        img.onerror = () => { img.style.display = 'none'; };
+
+        // 앨범 색상
+        if (firstSong.dominant_color) {
+            ColorTheme.setColor(firstSong.dominant_color);
+        }
+
+        // 곡 목록
+        const container = document.getElementById('album-detail-songs');
+        this.renderSongs(songs, container, {
+            showAlbum: false, showGenre: false, showYear: false
+        });
+
+        // 재생 버튼
+        document.getElementById('btn-play-album').onclick = () => {
+            Player.play(songs[0], songs, 0);
+        };
+        document.getElementById('btn-shuffle-album').onclick = () => {
+            const shuffled = [...songs].sort(() => Math.random() - 0.5);
+            Player.play(shuffled[0], shuffled, 0);
+        };
+
+        // 네비게이션 히스토리
+        App.pushHistory({ view: 'album-detail', album: albumName, artist: artistName });
+    },
+
+    // ─── 아티스트 뷰 ───
+
+    renderArtists() {
+        this._hideAllViews();
+        const view = document.getElementById('view-artists');
+        view.classList.remove('hidden');
+        document.getElementById('artists-count').textContent = `${this.artists.length}명`;
+
+        const grid = document.getElementById('artists-grid');
+        grid.innerHTML = '';
+
+        this.artists.forEach(artist => {
+            const card = document.createElement('div');
+            card.className = 'artist-card';
+
+            card.innerHTML = `
+                <div class="artist-avatar-card">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.5">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </div>
+                <div class="artist-name">${this._escapeHtml(artist.artist)}</div>
+                <div class="artist-meta">${artist.album_count}개 앨범 · ${artist.song_count}곡</div>
+            `;
+
+            card.addEventListener('click', () => {
+                this.showArtistDetail(artist.artist);
+            });
+
+            grid.appendChild(card);
+        });
+    },
+
+    async showArtistDetail(artistName) {
+        this._hideAllViews();
+        const view = document.getElementById('view-artist-detail');
+        view.classList.remove('hidden');
+
+        document.getElementById('artist-detail-name').textContent = artistName;
+
+        const res = await fetch(`/api/artists/${encodeURIComponent(artistName)}`);
+        const songs = await res.json();
+
+        document.getElementById('artist-detail-meta').textContent = `${songs.length}곡`;
+
+        const container = document.getElementById('artist-detail-songs');
+        this.renderSongs(songs, container, {
+            showGenre: false, showYear: false
+        });
+
+        App.pushHistory({ view: 'artist-detail', artist: artistName });
+    },
+
+    // ─── 좋아하는 노래 ───
+
+    showLikedSongs() {
+        this._hideAllViews();
+        const view = document.getElementById('view-liked');
+        view.classList.remove('hidden');
+
+        const liked = this.songs.filter(s => s.liked);
+        document.getElementById('liked-count').textContent = `${liked.length}곡`;
+
+        const container = document.getElementById('liked-songs-list');
+        this.renderSongs(liked, container, {
+            showGenre: false, showYear: false, showPlays: false
+        });
+    },
+
+    // ─── 검색 ───
+
+    async showSearchResults(query) {
+        if (!query.trim()) return;
+
+        this._hideAllViews();
+        const view = document.getElementById('view-search');
+        view.classList.remove('hidden');
+
+        const res = await fetch(`/api/songs/search?q=${encodeURIComponent(query)}`);
+        const results = await res.json();
+
+        document.getElementById('search-count').textContent = `${results.length}개 결과`;
+
+        const container = document.getElementById('search-results');
+        this.renderSongs(results, container, {
+            showGenre: false, showYear: false, showPlays: false
+        });
+    },
+
+    // ─── 현재 재생 곡 하이라이트 ───
+
+    highlightPlaying(songId) {
+        document.querySelectorAll('.song-item').forEach(item => {
+            item.classList.toggle('playing', item.dataset.songId == songId);
+        });
+    },
+
+    updateSongLike(songId, liked) {
+        document.querySelectorAll(`.song-like-btn[data-song-id="${songId}"]`).forEach(btn => {
+            btn.classList.toggle('liked', !!liked);
+            const svg = btn.querySelector('svg');
+            svg.setAttribute('fill', liked ? 'var(--accent)' : 'none');
+        });
+
+        // songs 배열도 업데이트
+        const song = this.songs.find(s => s.id === songId);
+        if (song) {
+            song.liked = liked;
+            song.disliked = 0;
+        }
+    },
+
+    // ─── 유틸리티 ───
+
+    _hideAllViews() {
+        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+        document.getElementById('welcome-screen').classList.add('hidden');
+        document.getElementById('loading-screen').classList.add('hidden');
+    },
+
+    _formatTime(seconds) {
+        if (!seconds || isNaN(seconds)) return '0:00';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    },
+
+    _escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+};

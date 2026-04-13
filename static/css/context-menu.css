@@ -1,0 +1,144 @@
+/* ═══════════════════════════════════
+   Music Play — 컨텍스트 메뉴 (우클릭)
+   ═══════════════════════════════════ */
+
+.context-menu {
+    position: fixed;
+    z-index: 300;
+    min-width: 220px;
+    background: rgba(40, 40, 40, 0.95);
+    backdrop-filter: blur(30px) saturate(200%);
+    -webkit-backdrop-filter: blur(30px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-md);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    padding: 6px;
+    animation: contextIn 0.15s ease;
+}
+
+@keyframes contextIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.context-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.context-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    position: relative;
+}
+
+.context-item:hover {
+    background: var(--accent);
+    color: #fff;
+}
+
+.context-item:hover svg {
+    color: #fff;
+    stroke: #fff;
+}
+
+.context-item svg {
+    flex-shrink: 0;
+    color: var(--text-secondary);
+}
+
+.context-item span {
+    flex: 1;
+}
+
+.context-danger {
+    color: var(--danger);
+}
+
+.context-danger:hover {
+    background: var(--danger);
+    color: #fff;
+}
+
+.context-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 4px 8px;
+}
+
+/* ─── 서브메뉴 ─── */
+.has-submenu {
+    position: relative;
+}
+
+.has-submenu > svg {
+    margin-left: auto;
+}
+
+.submenu {
+    display: none;
+    position: absolute;
+    top: -6px;
+    left: 100%;
+    min-width: 200px;
+    background: rgba(40, 40, 40, 0.95);
+    backdrop-filter: blur(30px) saturate(200%);
+    -webkit-backdrop-filter: blur(30px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-md);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    padding: 6px;
+    margin-left: 4px;
+    z-index: 310;
+}
+
+.has-submenu:hover > .submenu {
+    display: block;
+    animation: contextIn 0.15s ease;
+}
+
+.submenu .submenu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.submenu .submenu-item:hover {
+    background: var(--accent);
+    color: #fff;
+}
+
+.submenu .submenu-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 4px 8px;
+}
+
+.submenu .submenu-new-playlist {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.submenu .submenu-new-playlist:hover {
+    color: #fff;
+}
