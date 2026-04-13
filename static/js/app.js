@@ -14,6 +14,8 @@ const App = {
 
         // 모듈 초기화
         Player.init();
+        Equalizer.init();
+        MiniPlayer.init();
         ContextMenu.init();
         SongInfo.init();
         Playlist.init();

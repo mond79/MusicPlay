@@ -219,6 +219,7 @@ const Player = {
         this.audio.load();
 
         try {
+            if (window.Equalizer) Equalizer.resume();
             await this.audio.play();
         } catch (e) {
             console.error('재생 시작 오류:', e);

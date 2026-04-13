@@ -452,3 +452,99 @@
     max-height: calc(70vh - 70px);
     overflow-y: auto;
 }
+
+/* ─── 이퀄라이저 슬라이더 ─── */
+.eq-sliders {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 10px 30px;
+    height: 250px;
+}
+
+.eq-sliders.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.eq-band {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.eq-band span {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+
+input[type=range].eq-slider {
+    writing-mode: vertical-lr; /* IE/Edge */
+    direction: rtl; /* 수직 방향 조정 */
+    appearance: slider-vertical; /* 표준 속성 적용 (Chrome, Safari 등) */
+    width: 8px;
+    height: 180px;
+    margin: 0;
+}
+
+.eq-preset-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    width: 140px;
+    color-scheme: dark; /* 브라우저 기본 드롭다운 메뉴 다크 테마 적용 */
+}
+
+.eq-preset-select option {
+    background: #1e1e1e;
+    color: #ffffff;
+}
+
+/* 토글 스위치 */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--surface);
+    transition: .3s;
+    border: 1px solid var(--border);
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--text-tertiary);
+    transition: .3s;
+}
+input:checked + .slider {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+input:checked + .slider:before {
+    transform: translateX(20px);
+    background-color: white;
+}
+.slider.round {
+    border-radius: 24px;
+}
+.slider.round:before {
+    border-radius: 50%;
+}
