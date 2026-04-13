@@ -16,6 +16,7 @@ const App = {
         Player.init();
         Equalizer.init();
         MiniPlayer.init();
+        Visualizer.init();
         ContextMenu.init();
         SongInfo.init();
         Playlist.init();
@@ -215,6 +216,10 @@ const App = {
                 this.showSmartPlaylist('recently-played', '최근 재생', '/api/smart/recently-played');
                 this.currentView = { type: 'recently-played' };
                 break;
+            case 'stats':
+                Stats.render();
+                this.currentView = { type: 'stats' };
+                break;
         }
 
         this.pushHistory({ view: viewName });
@@ -231,6 +236,7 @@ const App = {
             case 'recent': this.showSmartPlaylist('recent', '최근 추가', '/api/smart/recent'); break;
             case 'most-played': this.showSmartPlaylist('most-played', '자주 들은 곡', '/api/smart/most-played'); break;
             case 'recently-played': this.showSmartPlaylist('recently-played', '최근 재생', '/api/smart/recently-played'); break;
+            case 'stats': Stats.render(); break;
             case 'playlist':
                 if (this.currentView.id) {
                     Playlist.showPlaylistView(this.currentView.id);

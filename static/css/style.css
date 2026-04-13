@@ -110,10 +110,12 @@ input:focus, select:focus, textarea:focus {
 }
 
 input[type="search"] {
+    appearance: none;
     -webkit-appearance: none;
 }
 
 input[type="search"]::-webkit-search-cancel-button {
+    appearance: none;
     -webkit-appearance: none;
 }
 
@@ -845,6 +847,132 @@ input[type="search"]::-webkit-search-cancel-button {
     margin-top: 2px;
 }
 
+/* ─── 통계 대시보드 ─── */
+.stats-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 10px;
+}
+
+.stat-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-card h3 {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.stat-grids {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 24px;
+}
+
+.stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+}
+
+.stat-box h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+    color: var(--text-primary);
+}
+
+.stat-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.stat-bar-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.stat-rank {
+    font-weight: 700;
+    color: var(--text-tertiary);
+    width: 20px;
+    text-align: center;
+}
+
+.stat-cover {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.stat-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.stat-val {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+.stat-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-primary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.stat-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 /* ─── 앨범 상세 ─── */
 .album-detail-header {
     display: flex;
@@ -1177,12 +1305,18 @@ input[type="search"]::-webkit-search-cancel-button {
     padding: 40px;
 }
 
-.plain-lyrics p {
+.plain-lyrics-pre {
+    font-family: 'Inter', sans-serif;
     font-size: 20px;
     font-weight: 600;
-    line-height: 2;
+    line-height: 2.2;
     color: rgba(255, 255, 255, 0.7);
     text-align: left;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0;
+    background: none;
+    border: none;
 }
 
 /* ─── LRC 배지 ─── */
@@ -1291,4 +1425,66 @@ input[type="search"]::-webkit-search-cancel-button {
 .toast.show {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
+}
+
+/* ─── 시네마틱 비주얼라이저 모드 ─── */
+#visualizer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+#visualizer-overlay.hidden {
+    display: none;
+}
+
+.visualizer-bg {
+    position: absolute;
+    top: -5%;
+    left: -5%;
+    width: 110%;
+    height: 110%;
+    background-size: cover;
+    background-position: center;
+    filter: blur(50px) brightness(0.3);
+    z-index: 1;
+    transition: background-image 1.5s ease-in-out;
+}
+
+#visualizer-canvas {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+}
+
+#btn-visualizer-close {
+    position: absolute;
+    top: 32px;
+    right: 32px;
+    z-index: 3;
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#btn-visualizer-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
 }

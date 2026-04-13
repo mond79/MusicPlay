@@ -121,6 +121,19 @@ def api_smart_recently_played():
     songs = db.get_recently_played_songs(50)
     return jsonify(songs)
 
+@app.route('/api/stats')
+def api_get_stats():
+    """개인 음악 감상 통계 반환"""
+    stats = db.get_total_play_stats()
+    top_artists = db.get_top_artists(5)
+    top_songs = db.get_most_played_songs(5)
+    return jsonify({
+        'summary': stats,
+        'top_artists': top_artists,
+        'top_songs': top_songs
+    })
+
+
 
 @app.route('/api/songs/<int:song_id>/fetch-lyrics')
 def api_fetch_lyrics(song_id):

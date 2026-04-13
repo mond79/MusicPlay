@@ -454,6 +454,11 @@ const Player = {
         const svg = likeBtn.querySelector('svg');
         svg.setAttribute('fill', song.liked ? 'var(--accent)' : 'none');
 
+        // 비주얼라이저 연동
+        if (window.Visualizer && Visualizer.isActive) {
+            Visualizer._updateBackground();
+        }
+
         // 가사 패널 업데이트
         if (!document.getElementById('lyrics-panel').classList.contains('hidden')) {
             this._updateLyricsPanel();
@@ -653,10 +658,10 @@ const Player = {
         } else {
             // 일반 텍스트 가사
             this.isLrcMode = false;
-            const lines = song.lyrics.split('\n');
-            container.innerHTML = '<div class="plain-lyrics">' +
-                lines.map(l => `<p>${this._escapeHtml(l) || '&nbsp;'}</p>`).join('') +
-                '</div>';
+            const escaped = this._escapeHtml(song.lyrics);
+            container.innerHTML = '<div class="plain-lyrics"><pre class="plain-lyrics-pre">' +
+                escaped +
+                '</pre></div>';
         }
     },
 

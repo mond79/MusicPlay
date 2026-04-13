@@ -223,6 +223,39 @@ def get_recently_played_songs(limit=50):
     return [dict(s) for s in songs]
 
 
+def get_top_artists(limit=10):
+    """가장 많이 들은 아티스트 랭킹을 반환합니다."""
+    conn = get_db()
+    artists = conn.execute(
+        '''SELECT artist, COUNT(id) as song_count, SUM(play_count) as total_plays, SUM(duration) as total_duration
+           FROM songs 
+           WHERE play_count > 0 
+           GROUP BY artist 
+           ORDER BY total_plays DESC 
+           LIMIT ?''', (limit,)
+    ).fetchall()
+    conn.close()
+    return [dict(a) for a in artists]
+
+
+def get_total_play_stats():
+    """총 청취 통계 요약을 반환합니다."""
+    conn = get_db()
+    stats = conn.execute(
+        '''SELECT SUM(play_count) as total_plays, 
+                  SUM(duration * play_count) as total_listened_time,
+                  COUNT(DISTINCT artist) as unique_artists
+           FROM songs WHERE play_count > 0'''
+    ).fetchone()
+    conn.close()
+    
+    result = dict(stats) if stats else {}
+    result['total_plays'] = result.get('total_plays') or 0
+    result['total_listened_time'] = result.get('total_listened_time') or 0
+    result['unique_artists'] = result.get('unique_artists') or 0
+    return result
+
+
 def toggle_like(song_id):
     """좋아요를 토글합니다."""
     conn = get_db()

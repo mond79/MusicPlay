@@ -5,6 +5,7 @@
 const Equalizer = {
     audioCtx: null,
     source: null,
+    analyser: null,
     filters: [],
     isEnabled: false,
     
@@ -48,39 +49,58 @@ const Equalizer = {
         if (this.audioCtx) return;
 
         const audioEl = Player.audio;
-        if (!audioEl) return;
+        if (!audioEl) {
+            console.warn('[EQ] Player.audio가 없습니다');
+            return;
+        }
 
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        this.audioCtx = new AudioContext();
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            this.audioCtx = new AudioContext();
+            console.log('[EQ] AudioContext 생성 완료, state:', this.audioCtx.state);
 
-        // 10 밴드 필터 생성
-        this.filters = this.frequencies.map(freq => {
-            const filter = this.audioCtx.createBiquadFilter();
-            filter.type = 'peaking';
-            filter.frequency.value = freq;
-            filter.Q.value = 1;
-            filter.gain.value = 0;
-            return filter;
-        });
+            // 10 밴드 필터 생성
+            this.filters = this.frequencies.map(freq => {
+                const filter = this.audioCtx.createBiquadFilter();
+                filter.type = 'peaking';
+                filter.frequency.value = freq;
+                filter.Q.value = 1;
+                filter.gain.value = 0;
+                return filter;
+            });
 
-        // 양 끝 주파수는 쉘빙 필터(shelving)로 변경하면 더 자연스럽지만 일반성을 위해 peaking 유지
+            // AnalyserNode 생성
+            this.analyser = this.audioCtx.createAnalyser();
+            this.analyser.fftSize = 256;
 
-        // 소스 연결: audio -> filter[0] -> filter[1] ... -> destination
-        this.source = this.audioCtx.createMediaElementSource(audioEl);
-        
-        let prevNode = this.source;
-        this.filters.forEach(filter => {
-            prevNode.connect(filter);
-            prevNode = filter;
-        });
-        prevNode.connect(this.audioCtx.destination);
+            // 소스 연결 체인
+            this.source = this.audioCtx.createMediaElementSource(audioEl);
+            
+            let prevNode = this.source;
+            this.filters.forEach(filter => {
+                prevNode.connect(filter);
+                prevNode = filter;
+            });
+            
+            // 마지막 필터를 analyser에 연결하고, analyser를 destination에 연결
+            prevNode.connect(this.analyser);
+            this.analyser.connect(this.audioCtx.destination);
 
-        // 초기 게인 적용
-        this._applyCurrentGains();
-        
-        // 끄기 상태면 바이패스
-        if (!this.isEnabled) {
-            this._bypass();
+            // 초기 게인 적용
+            this._applyCurrentGains();
+            
+            // 끄기 상태면 바이패스
+            if (!this.isEnabled) {
+                this._bypass();
+            }
+
+            console.log('[EQ] 오디오 체인 연결 완료, analyser:', !!this.analyser);
+        } catch (e) {
+            console.error('[EQ] AudioContext 초기화 실패:', e);
+            // 실패 시 상태 정리
+            this.audioCtx = null;
+            this.analyser = null;
+            this.source = null;
         }
     },
 
@@ -118,7 +138,7 @@ const Equalizer = {
                         prevNode.connect(filter);
                         prevNode = filter;
                     });
-                    prevNode.connect(this.audioCtx.destination);
+                    prevNode.connect(this.analyser);
                 }
                 document.getElementById('eq-sliders').classList.remove('disabled');
             } else {
@@ -163,7 +183,8 @@ const Equalizer = {
         if (!this.audioCtx || !this.source) return;
         this.source.disconnect();
         this.filters.forEach(f => f.disconnect());
-        this.source.connect(this.audioCtx.destination);
+        // 이퀄라이저를 건너뛰더라도 비주얼라이저를 위해 analyser에는 연결해줍니다.
+        this.source.connect(this.analyser);
         document.getElementById('eq-sliders').classList.add('disabled');
     },
 
