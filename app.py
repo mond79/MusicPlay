@@ -103,6 +103,72 @@ def api_delete_song(song_id):
     return jsonify({'success': True})
 
 
+@app.route('/api/smart/recent')
+def api_smart_recent():
+    """최근 추가된 곡 (최대 50곡)"""
+    songs = db.get_recent_songs(50)
+    return jsonify(songs)
+
+@app.route('/api/smart/most-played')
+def api_smart_most_played():
+    """자주 들은 곡 (최대 50곡)"""
+    songs = db.get_most_played_songs(50)
+    return jsonify(songs)
+
+@app.route('/api/smart/recently-played')
+def api_smart_recently_played():
+    """최근 재생한 곡 (최대 50곡)"""
+    songs = db.get_recently_played_songs(50)
+    return jsonify(songs)
+
+
+@app.route('/api/songs/<int:song_id>/fetch-lyrics')
+def api_fetch_lyrics(song_id):
+    """lrclib.net API를 사용하여 가사 자동 검색"""
+    import urllib.request
+    import urllib.parse
+    import json
+
+    song = db.get_song(song_id)
+    if not song:
+        return jsonify({'error': '곡을 찾을 수 없습니다'}), 404
+        
+    title = song.get('title', '')
+    artist = song.get('artist', '')
+    
+    if not title:
+        return jsonify({'error': '곡 제목 정보가 필요합니다'}), 400
+        
+    try:
+        # artist 정보가 있으면 합쳐서 검색, 없으면 title만 검색
+        search_query = f"{title} {artist}".strip()
+        url = f"https://lrclib.net/api/search?q={urllib.parse.quote(search_query)}"
+        
+        req = urllib.request.Request(url, headers={'User-Agent': 'MusicPlayApp/1.0'})
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read().decode())
+            if isinstance(data, list) and len(data) > 0:
+                # 싱크 가사가 있는 결과를 우선적으로 찾기
+                best_match = None
+                for item in data:
+                    if item.get('syncedLyrics'):
+                        best_match = item
+                        break
+                
+                # 싱크 가사가 없다면 첫 번째 결과 사용
+                if not best_match:
+                    best_match = data[0]
+                    
+                lyrics = best_match.get('syncedLyrics') or best_match.get('plainLyrics')
+                if lyrics:
+                    return jsonify({'success': True, 'lyrics': lyrics})
+        
+        return jsonify({'error': '가사를 찾을 수 없습니다'}), 404
+    except Exception as e:
+        print(f"가사 검색 오류: {e}")
+        return jsonify({'error': '가사 검색 중 오류가 발생했습니다'}), 500
+
+
 @app.route('/api/songs/<int:song_id>/stream')
 def api_stream_song(song_id):
     """곡 오디오 스트리밍"""
@@ -331,8 +397,8 @@ def api_remove_from_playlist(playlist_id, song_id):
 def api_reorder_playlist(playlist_id):
     """플레이리스트 순서 변경"""
     data = request.get_json()
-    song_ids = data.get('song_ids', [])
-    db.reorder_playlist(playlist_id, song_ids)
+    ps_ids = data.get('ps_ids', [])
+    db.reorder_playlist_songs(playlist_id, ps_ids)
     return jsonify({'success': True})
 
 
@@ -419,6 +485,17 @@ def api_browse_folder():
 # ─── 실행 ───
 
 if __name__ == '__main__':
+    import socket
+    # 로컬 IP 주소 감지
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        local_ip = '127.0.0.1'
+
     print("[Music Play] 서버를 시작합니다...")
-    print("  http://localhost:5000 에서 접속하세요")
-    app.run(debug=True, port=5000)
+    print(f"  🖥  로컬:    http://localhost:5000")
+    print(f"  📱 네트워크: http://{local_ip}:5000  (같은 Wi-Fi의 폰/태블릿에서 접속)")
+    app.run(debug=True, host='0.0.0.0', port=5000)

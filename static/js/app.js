@@ -201,6 +201,18 @@ const App = {
                 Library.showLikedSongs();
                 this.currentView = { type: 'liked' };
                 break;
+            case 'recent':
+                this.showSmartPlaylist('recent', '최근 추가', '/api/smart/recent');
+                this.currentView = { type: 'recent' };
+                break;
+            case 'most-played':
+                this.showSmartPlaylist('most-played', '자주 들은 곡', '/api/smart/most-played');
+                this.currentView = { type: 'most-played' };
+                break;
+            case 'recently-played':
+                this.showSmartPlaylist('recently-played', '최근 재생', '/api/smart/recently-played');
+                this.currentView = { type: 'recently-played' };
+                break;
         }
 
         this.pushHistory({ view: viewName });
@@ -214,6 +226,9 @@ const App = {
             case 'albums': Library.renderAlbums(); break;
             case 'artists': Library.renderArtists(); break;
             case 'liked': Library.showLikedSongs(); break;
+            case 'recent': this.showSmartPlaylist('recent', '최근 추가', '/api/smart/recent'); break;
+            case 'most-played': this.showSmartPlaylist('most-played', '자주 들은 곡', '/api/smart/most-played'); break;
+            case 'recently-played': this.showSmartPlaylist('recently-played', '최근 재생', '/api/smart/recently-played'); break;
             case 'playlist':
                 if (this.currentView.id) {
                     Playlist.showPlaylistView(this.currentView.id);
@@ -251,6 +266,37 @@ const App = {
             Library.showArtistDetail(state.artist);
         } else {
             this.navigate(state.view);
+        }
+    },
+
+    // ─── 스마트 플레이리스트 ───
+
+    async showSmartPlaylist(type, title, apiUrl) {
+        Library._hideAllViews();
+        const viewId = `view-${type}`;
+        const view = document.getElementById(viewId);
+        view.classList.remove('hidden');
+
+        try {
+            const res = await fetch(apiUrl);
+            const songs = await res.json();
+
+            const countId = type === 'most-played' ? 'most-played-count'
+                          : type === 'recently-played' ? 'recently-played-count'
+                          : 'recent-count';
+            document.getElementById(countId).textContent = `${songs.length}곡`;
+
+            const containerId = type === 'most-played' ? 'most-played-songs-list'
+                              : type === 'recently-played' ? 'recently-played-songs-list'
+                              : 'recent-songs-list';
+            const container = document.getElementById(containerId);
+
+            const showPlays = type === 'most-played';
+            Library.renderSongs(songs, container, {
+                showGenre: false, showYear: false, showPlays
+            });
+        } catch (e) {
+            console.error(`스마트 플레이리스트 로딩 오류 (${type}):`, e);
         }
     },
 

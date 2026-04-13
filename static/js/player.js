@@ -13,6 +13,8 @@ const Player = {
     volume: 1,
     isMuted: false,
     isDragging: false,
+    playbackRate: 1.0,   // 재생 속도
+    speedOptions: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0],
 
     // ─── LRC 싱크 가사 ───
     lrcLines: [],        // [{ time: 초, text: '가사' }, ...]
@@ -42,6 +44,14 @@ const Player = {
         if (savedRepeat) {
             this.repeatMode = savedRepeat;
             this._updateRepeatUI();
+        }
+
+        // 저장된 재생 속도 복원
+        const savedSpeed = localStorage.getItem('mp-speed');
+        if (savedSpeed) {
+            this.playbackRate = parseFloat(savedSpeed);
+            this.audio.playbackRate = this.playbackRate;
+            this._updateSpeedUI();
         }
     },
 
@@ -130,6 +140,62 @@ const Player = {
         document.getElementById('player-like-btn').addEventListener('click', () => {
             if (this.currentSong()) {
                 this._toggleLike(this.currentSong().id);
+            }
+        });
+
+        // 재생 속도 버튼
+        document.getElementById('btn-speed').addEventListener('click', () => this.cycleSpeed());
+
+        // 키보드 단축키
+        this._bindKeyboard();
+    },
+
+    // ─── 키보드 단축키 ───
+
+    _bindKeyboard() {
+        document.addEventListener('keydown', (e) => {
+            // 입력 필드에 포커스되어 있으면 무시
+            const tag = e.target.tagName.toLowerCase();
+            if (tag === 'input' || tag === 'textarea') return;
+
+            switch (e.code) {
+                case 'Space':       // 스페이스: 재생/일시정지
+                    e.preventDefault();
+                    this.togglePlay();
+                    break;
+                case 'ArrowLeft':   // ←: 5초 되감기
+                    e.preventDefault();
+                    if (this.audio.src) {
+                        this.audio.currentTime = Math.max(0, this.audio.currentTime - 5);
+                    }
+                    break;
+                case 'ArrowRight':  // →: 5초 빨리감기
+                    e.preventDefault();
+                    if (this.audio.src) {
+                        this.audio.currentTime = Math.min(this.audio.duration, this.audio.currentTime + 5);
+                    }
+                    break;
+                case 'ArrowUp':     // ↑: 볼륨 올리기
+                    e.preventDefault();
+                    this.setVolume(this.volume + 0.05);
+                    break;
+                case 'ArrowDown':   // ↓: 볼륨 내리기
+                    e.preventDefault();
+                    this.setVolume(this.volume - 0.05);
+                    break;
+                case 'KeyM':        // M: 음소거
+                    this.toggleMute();
+                    break;
+                case 'KeyN':        // N: 다음 곡 (Shift+N)
+                    if (e.shiftKey) {
+                        this.next();
+                    }
+                    break;
+                case 'KeyP':        // P: 이전 곡 (Shift+P)
+                    if (e.shiftKey) {
+                        this.prev();
+                    }
+                    break;
             }
         });
     },
@@ -296,6 +362,25 @@ const Player = {
         }
     },
 
+    // ─── 재생 속도 ───
+
+    cycleSpeed() {
+        const currentIdx = this.speedOptions.indexOf(this.playbackRate);
+        const nextIdx = (currentIdx + 1) % this.speedOptions.length;
+        this.playbackRate = this.speedOptions[nextIdx];
+        this.audio.playbackRate = this.playbackRate;
+        localStorage.setItem('mp-speed', this.playbackRate);
+        this._updateSpeedUI();
+        App.showToast(`재생 속도: ${this.playbackRate}x`);
+    },
+
+    _updateSpeedUI() {
+        const label = document.getElementById('speed-label');
+        label.textContent = `${this.playbackRate}x`;
+        const btn = document.getElementById('btn-speed');
+        btn.classList.toggle('active', this.playbackRate !== 1.0);
+    },
+
     // ─── 내부 함수 ───
 
     _onTrackEnd() {
@@ -375,6 +460,35 @@ const Player = {
 
         // 페이지 제목
         document.title = `${song.title} — ${song.artist} | Music Play`;
+
+        // MediaSession API (윈도우 알림 / 미디어 키 연동)
+        this._updateMediaSession(song);
+    },
+
+    _updateMediaSession(song) {
+        if (!('mediaSession' in navigator)) return;
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: song.title || '알 수 없는 곡',
+            artist: song.artist || '알 수 없는 아티스트',
+            album: song.album || '',
+            artwork: [{
+                src: `/api/songs/${song.id}/cover`,
+                sizes: '500x500',
+                type: 'image/jpeg'
+            }]
+        });
+
+        navigator.mediaSession.setActionHandler('play', () => this.togglePlay());
+        navigator.mediaSession.setActionHandler('pause', () => this.togglePlay());
+        navigator.mediaSession.setActionHandler('previoustrack', () => this.prev());
+        navigator.mediaSession.setActionHandler('nexttrack', () => this.next());
+        navigator.mediaSession.setActionHandler('seekbackward', () => {
+            this.audio.currentTime = Math.max(0, this.audio.currentTime - 10);
+        });
+        navigator.mediaSession.setActionHandler('seekforward', () => {
+            this.audio.currentTime = Math.min(this.audio.duration, this.audio.currentTime + 10);
+        });
     },
 
     // ─── LRC 가사 파싱 ───

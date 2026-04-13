@@ -12,6 +12,7 @@ const SongInfo = {
         this._bindTabs();
         this._bindFooter();
         this._bindArtwork();
+        this._bindLyrics();
         this._bindOptions();
         this._bindRating();
     },
@@ -141,6 +142,39 @@ const SongInfo = {
             }
 
             fileInput.value = '';
+        });
+    },
+
+    // ─── 가사 자동 검색 ───
+
+    _bindLyrics() {
+        const btn = document.getElementById('btn-fetch-lyrics');
+        if (!btn) return;
+
+        btn.addEventListener('click', async () => {
+            if (!this.currentSong) return;
+
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> 검색 중...`;
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/songs/${this.currentSong.id}/fetch-lyrics`);
+                const data = await res.json();
+
+                if (data.success && data.lyrics) {
+                    document.getElementById('info-lyrics').value = data.lyrics;
+                    App.showToast('가사를 성공적으로 가져왔습니다!');
+                } else {
+                    App.showToast('가사를 찾을 수 없습니다.');
+                }
+            } catch (e) {
+                console.error(e);
+                App.showToast('가사 검색 중 오류가 발생했습니다.');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         });
     },
 

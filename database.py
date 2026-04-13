@@ -193,6 +193,36 @@ def delete_song(song_id):
     conn.close()
 
 
+def get_recent_songs(limit=50):
+    """최근 추가된 곡을 반환합니다."""
+    conn = get_db()
+    songs = conn.execute(
+        'SELECT * FROM songs ORDER BY date_added DESC LIMIT ?', (limit,)
+    ).fetchall()
+    conn.close()
+    return [dict(s) for s in songs]
+
+
+def get_most_played_songs(limit=50):
+    """가장 많이 재생한 곡을 반환합니다."""
+    conn = get_db()
+    songs = conn.execute(
+        'SELECT * FROM songs WHERE play_count > 0 ORDER BY play_count DESC LIMIT ?', (limit,)
+    ).fetchall()
+    conn.close()
+    return [dict(s) for s in songs]
+
+
+def get_recently_played_songs(limit=50):
+    """최근 재생한 곡을 반환합니다."""
+    conn = get_db()
+    songs = conn.execute(
+        "SELECT * FROM songs WHERE last_played != '' ORDER BY last_played DESC LIMIT ?", (limit,)
+    ).fetchall()
+    conn.close()
+    return [dict(s) for s in songs]
+
+
 def toggle_like(song_id):
     """좋아요를 토글합니다."""
     conn = get_db()
@@ -384,6 +414,21 @@ def add_song_to_playlist(playlist_id, song_id):
         'INSERT INTO playlist_songs (playlist_id, song_id, position) VALUES (?, ?, ?)',
         (playlist_id, song_id, max_pos + 1)
     )
+    now = datetime.now().isoformat()
+    conn.execute('UPDATE playlists SET updated_at = ? WHERE id = ?', (now, playlist_id))
+    conn.commit()
+    conn.close()
+
+
+def reorder_playlist_songs(playlist_id, ps_ids):
+    """플레이리스트의 곡 순서를 업데이트합니다. ps_ids는 playlist_songs의 id 배열입니다."""
+    conn = get_db()
+    # 일괄 업데이트를 위해 Transaction 사용
+    for index, ps_id in enumerate(ps_ids):
+        conn.execute(
+            'UPDATE playlist_songs SET position = ? WHERE id = ? AND playlist_id = ?',
+            (index, ps_id, playlist_id)
+        )
     now = datetime.now().isoformat()
     conn.execute('UPDATE playlists SET updated_at = ? WHERE id = ?', (now, playlist_id))
     conn.commit()

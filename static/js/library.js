@@ -56,6 +56,11 @@ const Library = {
             item.dataset.songId = song.id;
             item.dataset.index = index;
 
+            if (contextType === 'playlist') {
+                item.dataset.psId = song.ps_id;
+                item.draggable = true;
+            }
+
             if (Player.currentSong() && Player.currentSong().id === song.id) {
                 item.classList.add('playing');
             }
@@ -134,6 +139,67 @@ const Library = {
                 song.disliked = 0;
                 this.updateSongLike(song.id, data.liked);
             });
+
+            // 플레이리스트 드래그 앤 드롭 정렬 로직
+            if (contextType === 'playlist') {
+                item.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', index);
+                    e.dataTransfer.effectAllowed = 'move';
+                    item.classList.add('dragging');
+                });
+                
+                item.addEventListener('dragend', () => {
+                    item.classList.remove('dragging');
+                    container.querySelectorAll('.song-item').forEach(el => el.classList.remove('drag-over', 'drag-over-bottom'));
+                });
+                
+                item.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    const rect = item.getBoundingClientRect();
+                    const midY = rect.top + rect.height / 2;
+                    if (e.clientY < midY) {
+                        item.classList.add('drag-over');
+                        item.classList.remove('drag-over-bottom');
+                    } else {
+                        item.classList.remove('drag-over');
+                        item.classList.add('drag-over-bottom');
+                    }
+                });
+                
+                item.addEventListener('dragleave', () => {
+                    item.classList.remove('drag-over', 'drag-over-bottom');
+                });
+                
+                item.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    item.classList.remove('drag-over', 'drag-over-bottom');
+                    
+                    const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                    if (dragIndex === index) return;
+                    
+                    const draggedSong = songs.splice(dragIndex, 1)[0];
+                    const rect = item.getBoundingClientRect();
+                    const midY = rect.top + rect.height / 2;
+                    
+                    // 드롭할 인덱스 계산
+                    let insertIndex = e.clientY < midY ? index : index + 1;
+                    if (dragIndex < insertIndex) insertIndex--; // 배열이 하나 빠졌으므로 보정
+                    
+                    songs.splice(insertIndex, 0, draggedSong);
+                    
+                    // 리렌더링
+                    this.renderSongs(songs, container, { playlistId, contextType, showAlbum, showGenre, showYear, showPlays });
+                    
+                    // 서버에 새 순서 저장 (ps_id 배열 전송)
+                    const psIds = songs.map(s => s.ps_id);
+                    await fetch(`/api/playlists/${playlistId}/reorder`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ps_ids: psIds })
+                    });
+                });
+            }
 
             container.appendChild(item);
         });
