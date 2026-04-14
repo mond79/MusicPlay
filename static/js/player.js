@@ -439,14 +439,26 @@ const Player = {
         artist.textContent = song.artist || '알 수 없는 아티스트';
 
         // 커버
+        cover.crossOrigin = "Anonymous";
         cover.src = `/api/songs/${song.id}/cover`;
         cover.onload = () => {
             cover.classList.add('visible');
             noCover.style.display = 'none';
+            
+            // 다이나믹 컬러 테마 적용 (5단계)
+            if (window.ColorTheme) {
+                const hexColor = ColorTheme.extractFromImage(cover);
+                if (hexColor) {
+                    ColorTheme.setColor(hexColor);
+                } else {
+                    ColorTheme.reset();
+                }
+            }
         };
         cover.onerror = () => {
             cover.classList.remove('visible');
             noCover.style.display = 'flex';
+            if (window.ColorTheme) ColorTheme.reset();
         };
 
         // 좋아요

@@ -379,10 +379,10 @@ input[type="search"]::-webkit-search-cancel-button {
     top: 0;
     left: 0;
     right: 0;
-    height: 400px;
-    opacity: 0.15;
+    height: 500px;
+    opacity: 0.45;
     background: radial-gradient(ellipse at 30% 0%, var(--dynamic-color) 0%, transparent 70%);
-    transition: background var(--transition-slow);
+    transition: background 0.8s ease, opacity 0.8s ease;
     pointer-events: none;
     z-index: 0;
 }
