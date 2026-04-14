@@ -202,15 +202,32 @@
 
                 <!-- 아티스트 상세 뷰 -->
                 <div id="view-artist-detail" class="view hidden">
-                    <div class="artist-detail-header">
-                        <div class="artist-avatar">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                        </div>
-                        <div class="artist-detail-info">
+                    <!-- 스포티파이 스타일 Hero Banner -->
+                    <div class="artist-hero-banner" id="artist-hero-banner" title="클릭하여 아티스트 이미지 변경">
+                        <div class="artist-hero-bg" id="artist-hero-bg"></div>
+                        <div class="artist-hero-gradient"></div>
+                        <div class="artist-hero-content">
                             <h2 id="artist-detail-name"></h2>
                             <p id="artist-detail-meta"></p>
                         </div>
+                        <div class="artist-hero-upload-overlay" id="artist-hero-upload-overlay">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            <span>이미지 변경</span>
+                        </div>
+                        <input type="file" id="artist-image-upload" accept="image/*" class="hidden">
                     </div>
+                    
+                    <div class="artist-action-bar">
+                        <button class="btn-play-large" id="btn-play-artist" title="재생">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 4px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        </button>
+                        <button class="btn-icon btn-shuffle-large" id="btn-shuffle-artist" title="셔플">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="artist-songs-container" style="padding: 0 32px 32px;">
+                        <h3 style="font-size: 24px; font-weight: 700; margin-bottom: 24px; color: var(--text-primary);">인기</h3>
                     <div class="song-list-header">
                         <div class="col-num">#</div>
                         <div class="col-title">제목</div>
@@ -219,7 +236,8 @@
                         <div class="col-plays">재생</div>
                         <div class="col-like">♥</div>
                     </div>
-                    <div id="artist-detail-songs" class="song-list"></div>
+                        <div id="artist-detail-songs" class="song-list"></div>
+                    </div>
                 </div>
 
                 <!-- 좋아하는 노래 뷰 -->
@@ -820,16 +838,16 @@
     <audio id="audio-element" preload="auto"></audio>
 
     <!-- ═══ JavaScript ═══ -->
-    <script src="/static/js/color-theme.js?v=17"></script>
-    <script src="/static/js/equalizer.js?v=17"></script>
-    <script src="/static/js/player.js?v=17"></script>
-    <script src="/static/js/library.js?v=17"></script>
-    <script src="/static/js/context-menu.js?v=17"></script>
-    <script src="/static/js/song-info.js?v=17"></script>
-    <script src="/static/js/playlist.js?v=17"></script>
-    <script src="/static/js/mini-player.js?v=17"></script>
-    <script src="/static/js/stats.js?v=17"></script>
-    <script src="/static/js/visualizer.js?v=17"></script>
-    <script src="/static/js/app.js?v=17"></script>
+    <script src="/static/js/color-theme.js?v=19"></script>
+    <script src="/static/js/equalizer.js?v=19"></script>
+    <script src="/static/js/player.js?v=19"></script>
+    <script src="/static/js/library.js?v=19"></script>
+    <script src="/static/js/context-menu.js?v=19"></script>
+    <script src="/static/js/song-info.js?v=19"></script>
+    <script src="/static/js/playlist.js?v=19"></script>
+    <script src="/static/js/mini-player.js?v=19"></script>
+    <script src="/static/js/stats.js?v=19"></script>
+    <script src="/static/js/visualizer.js?v=19"></script>
+    <script src="/static/js/app.js?v=19"></script>
 </body>
 </html>

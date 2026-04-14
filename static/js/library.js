@@ -315,13 +315,12 @@ const Library = {
         this.artists.forEach(artist => {
             const card = document.createElement('div');
             card.className = 'artist-card';
+            const imageUrl = `/api/artists/${encodeURIComponent(artist.artist)}/image?t=${window.artistImageCache || 0}`;
 
             card.innerHTML = `
                 <div class="artist-avatar-card">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.5">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                    </svg>
+                    <img src="${imageUrl}" alt="${this._escapeHtml(artist.artist)}" 
+                         onerror="this.parentElement.innerHTML='<svg width=\\'40\\' height=\\'40\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'#666\\' stroke-width=\\'1.5\\'><path d=\\'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\\'/><circle cx=\\'12\\' cy=\\'7\\' r=\\'4\\'/></svg>'">
                 </div>
                 <div class="artist-name">${this._escapeHtml(artist.artist)}</div>
                 <div class="artist-meta">${artist.album_count}개 앨범 · ${artist.song_count}곡</div>
@@ -342,10 +341,62 @@ const Library = {
 
         document.getElementById('artist-detail-name').textContent = artistName;
 
+        // 이미지 및 배너 설정
+        const imageUrl = `/api/artists/${encodeURIComponent(artistName)}/image?t=${window.artistImageCache || 0}`;
+        const heroBg = document.getElementById('artist-hero-bg');
+        heroBg.style.backgroundImage = `url('${imageUrl}')`;
+
         const res = await fetch(`/api/artists/${encodeURIComponent(artistName)}`);
         const songs = await res.json();
 
         document.getElementById('artist-detail-meta').textContent = `${songs.length}곡`;
+        
+        // 재생 버튼 바인딩
+        document.getElementById('btn-play-artist').onclick = () => {
+            if (songs.length > 0) Player.play(songs[0], songs, 0);
+        };
+        document.getElementById('btn-shuffle-artist').onclick = () => {
+            if (songs.length > 0) {
+                const shuffled = [...songs].sort(() => Math.random() - 0.5);
+                Player.play(shuffled[0], shuffled, 0);
+            }
+        };
+
+        // 이미지 업로드 로직 (중복 바인딩을 피하기 위해 요소 복제/교체)
+        const uploadBtn = document.getElementById('artist-hero-banner');
+        const newUploadBtn = uploadBtn.cloneNode(true);
+        uploadBtn.parentNode.replaceChild(newUploadBtn, uploadBtn);
+        const newFileInput = document.getElementById('artist-image-upload');
+
+        newUploadBtn.onclick = () => newFileInput.click();
+
+        newFileInput.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const uploadRes = await fetch(`/api/artists/${encodeURIComponent(artistName)}/image`, {
+                    method: 'PUT',
+                    body: formData
+                });
+
+                if (uploadRes.ok) {
+                    window.artistImageCache = Date.now();
+                    const newImageUrl = `/api/artists/${encodeURIComponent(artistName)}/image?t=${window.artistImageCache}`;
+                    document.getElementById('artist-hero-bg').style.backgroundImage = `url('${newImageUrl}')`;
+                    ColorTheme.extractFromImage(newImageUrl); // 배경색도 연동 동기화
+                } else {
+                    alert('사진 업로드에 실패했습니다.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('업로드 오류가 발생했습니다.');
+            }
+            newFileInput.value = ''; // 초기화
+        };
 
         const container = document.getElementById('artist-detail-songs');
         this.renderSongs(songs, container, {

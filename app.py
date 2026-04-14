@@ -5,13 +5,17 @@ Apple Music / iTunes 스타일 음악 플레이어의 백엔드 API 서버입니
 
 import os
 import json
+import base64
 import mimetypes
-from flask import Flask, render_template, request, jsonify, send_file, Response
+from flask import Flask, render_template, request, jsonify, send_file, Response, abort
 from flask_cors import CORS
 
 import database as db
 import music_scanner as scanner
 import tag_writer
+
+ARTISTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'artists')
+os.makedirs(ARTISTS_DIR, exist_ok=True)
 
 app = Flask(__name__)
 CORS(app)
@@ -345,6 +349,34 @@ def api_get_artist(artist_name):
     """아티스트의 곡 목록"""
     songs = db.get_artist_songs(artist_name)
     return jsonify(songs)
+
+
+@app.route('/api/artists/<path:artist_name>/image', methods=['GET'])
+def api_get_artist_image(artist_name):
+    """아티스트의 커버 이미지 반환"""
+    safe_name = base64.urlsafe_b64encode(artist_name.encode('utf-8')).decode('utf-8')
+    file_path = os.path.join(ARTISTS_DIR, f"{safe_name}.jpg")
+    
+    if os.path.exists(file_path):
+        return send_file(file_path, mimetype='image/jpeg')
+    return abort(404)
+
+
+@app.route('/api/artists/<path:artist_name>/image', methods=['PUT'])
+def api_upload_artist_image(artist_name):
+    """아티스트 커버 이미지 업로드 및 저장"""
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image file provided'}), 400
+        
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+        
+    safe_name = base64.urlsafe_b64encode(artist_name.encode('utf-8')).decode('utf-8')
+    file_path = os.path.join(ARTISTS_DIR, f"{safe_name}.jpg")
+    
+    file.save(file_path)
+    return jsonify({'success': True})
 
 
 # ─── 플레이리스트 API ───

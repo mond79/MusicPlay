@@ -1034,35 +1034,126 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 /* ─── 아티스트 상세 ─── */
-.artist-detail-header {
-    display: flex;
-    gap: 24px;
-    padding: 16px 0 32px;
-    align-items: center;
+/* ─── 아티스트 상세 (Hero Banner) ─── */
+.artist-hero-banner {
+    position: relative;
+    width: 100%;
+    height: 450px;
+    background: var(--bg-tertiary);
+    cursor: pointer;
+    overflow: hidden;
 }
 
-.artist-avatar {
-    width: 120px;
-    height: 120px;
+.artist-hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center 20%;
+    background-repeat: no-repeat;
+    transition: transform 0.5s ease;
+}
+
+.artist-hero-gradient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.7) 100%);
+    pointer-events: none;
+}
+
+.artist-hero-content {
+    position: absolute;
+    bottom: 30px;
+    left: 32px;
+    z-index: 2;
+}
+
+.artist-hero-content h2 {
+    font-size: 96px;
+    font-weight: 900;
+    letter-spacing: -4px;
+    color: #fff;
+    margin: 0 0 12px 0;
+    line-height: 1;
+    text-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.artist-hero-content p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.8);
+    font-weight: 500;
+}
+
+.artist-hero-upload-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    z-index: 3;
+}
+
+.artist-hero-banner:hover .artist-hero-upload-overlay {
+    opacity: 1;
+}
+
+.artist-hero-upload-overlay span {
+    margin-top: 12px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* ─── 아티스트 액션 바 ─── */
+.artist-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 24px 32px;
+}
+
+.btn-play-large {
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-elevated));
+    background: var(--accent);
+    color: #000;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: var(--shadow-md);
-    flex-shrink: 0;
+    transition: transform var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
 }
 
-.artist-detail-info h2 {
-    font-size: 32px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
+.btn-play-large:hover {
+    transform: scale(1.06);
+    background: var(--accent-hover);
+    box-shadow: 0 8px 24px var(--accent-subtle);
 }
 
-.artist-detail-info p {
-    font-size: 13px;
-    color: var(--text-tertiary);
-    margin-top: 4px;
+.btn-play-large:active {
+    transform: scale(0.96);
+}
+
+.btn-shuffle-large {
+    color: var(--text-secondary);
+    transition: color var(--transition-fast);
+}
+
+.btn-shuffle-large:hover {
+    color: var(--text-primary);
 }
 
 /* ─── 큐 패널 ─── */
