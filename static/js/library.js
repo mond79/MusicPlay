@@ -80,11 +80,11 @@ const Library = {
             `;
 
             // 아티스트
-            cols += `<div class="song-cell">${this._escapeHtml(song.artist)}</div>`;
+            cols += `<div class="song-cell clickable-link artist-link">${this._escapeHtml(song.artist)}</div>`;
 
             // 앨범 (조건부)
             if (showAlbum) {
-                cols += `<div class="song-cell">${this._escapeHtml(song.album)}</div>`;
+                cols += `<div class="song-cell clickable-link album-link">${this._escapeHtml(song.album)}</div>`;
             }
 
             // 장르 (조건부)
@@ -117,6 +117,22 @@ const Library = {
             `;
 
             item.innerHTML = cols;
+
+            // 아티스트/앨범 링크 클릭 이벤트
+            const artistLink = item.querySelector('.artist-link');
+            if (artistLink) {
+                artistLink.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.showArtistDetail(song.artist);
+                });
+            }
+            const albumLink = item.querySelector('.album-link');
+            if (albumLink) {
+                albumLink.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.showAlbumDetail(song.album, song.album_artist || song.artist);
+                });
+            }
 
             // 더블클릭으로 재생
             item.addEventListener('dblclick', () => {
