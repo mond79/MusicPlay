@@ -64,9 +64,9 @@ const MiniPlayer = {
             miniStyle.textContent = `
                 body { margin: 0; padding: 0; background: var(--bg-primary); overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
                 .mp-wrapper { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; }
-                .mp-bg { position: absolute; inset: -50px; background-size: cover; background-position: center; filter: blur(30px) brightness(0.4); z-index: 1; transition: background 0.3s; }
+                .mp-bg { position: absolute; inset: -50px; background-size: cover; background-position: center; filter: blur(30px) brightness(0.4); z-index: 1; transition: background-image 0.5s ease; }
                 .mp-content { position: relative; z-index: 2; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100%; box-sizing: border-box; }
-                .mp-cover { width: 180px; height: 180px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); object-fit: cover; transition: transform 0.3s; }
+                .mp-cover { width: 180px; height: 180px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); object-fit: cover; transition: opacity 0.3s ease; }
                 .mp-info { text-align: center; width: 100%; display: flex; flex-direction: column; gap: 4px; overflow: hidden; margin-top: 16px; }
                 .mp-title { font-size: 18px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
                 .mp-artist { font-size: 14px; color: rgba(255,255,255,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -236,17 +236,32 @@ const MiniPlayer = {
         if (!this.pipWindow) return;
         const doc = this.pipWindow.document;
         const song = Player.currentSong();
+        const cover = doc.getElementById('mp-cover');
+        const bg = doc.getElementById('mp-bg');
+
         if (song) {
             const coverUrl = `/api/songs/${song.id}/cover`;
-            doc.getElementById('mp-cover').src = coverUrl;
-            doc.getElementById('mp-bg').style.backgroundImage = `url('${coverUrl}')`;
+
+            // 이전 커버와 다를 때만 페이드 전환
+            if (cover.src !== location.origin + coverUrl) {
+                cover.style.opacity = '0';
+                const img = new Image();
+                img.onload = () => {
+                    cover.src = coverUrl;
+                    bg.style.backgroundImage = `url('${coverUrl}')`;
+                    requestAnimationFrame(() => { cover.style.opacity = '1'; });
+                };
+                img.src = coverUrl;
+            }
+
             doc.getElementById('mp-title').textContent = song.title || '알 수 없는 곡';
             doc.getElementById('mp-artist').textContent = song.artist || '알 수 없는 아티스트';
         } else {
+            cover.style.opacity = '1';
             doc.getElementById('mp-title').textContent = '재생 중인 곡 없음';
             doc.getElementById('mp-artist').textContent = '-';
-            doc.getElementById('mp-cover').src = '/static/img/default-cover.png';
-            doc.getElementById('mp-bg').style.backgroundImage = 'none';
+            cover.src = '/static/img/default-cover.png';
+            bg.style.backgroundImage = 'none';
         }
     },
     

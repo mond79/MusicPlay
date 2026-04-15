@@ -271,6 +271,12 @@ const Player = {
 
         // OS 미디어 세션 메타데이터 업데이트
         this._updateMediaSession(song);
+
+        // 미니 플레이어 즉시 동기화
+        if (window.MiniPlayer && MiniPlayer.pipWindow) {
+            MiniPlayer._updateMeta();
+            MiniPlayer._updatePlayPause();
+        }
     },
 
     togglePlay() {
