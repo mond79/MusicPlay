@@ -148,6 +148,7 @@ const Player = {
 
         // 키보드 단축키
         this._bindKeyboard();
+        this._setupMediaSession();
     },
 
     // ─── 키보드 단축키 ───
@@ -200,6 +201,36 @@ const Player = {
         });
     },
 
+    // ─── OS 미디어 세션 연동 (Media Session API) ───
+
+    _setupMediaSession() {
+        if (!('mediaSession' in navigator)) return;
+
+        navigator.mediaSession.setActionHandler('play', () => this.togglePlay());
+        navigator.mediaSession.setActionHandler('pause', () => this.togglePlay());
+        navigator.mediaSession.setActionHandler('previoustrack', () => this.prev());
+        navigator.mediaSession.setActionHandler('nexttrack', () => this.next());
+        navigator.mediaSession.setActionHandler('seekbackward', () => {
+            if (this.audio.src) this.audio.currentTime = Math.max(0, this.audio.currentTime - 10);
+        });
+        navigator.mediaSession.setActionHandler('seekforward', () => {
+            if (this.audio.src) this.audio.currentTime = Math.min(this.audio.duration, this.audio.currentTime + 10);
+        });
+    },
+
+    _updateMediaSession(song) {
+        if (!('mediaSession' in navigator) || !song) return;
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: song.title || '알 수 없는 곡',
+            artist: song.artist || '알 수 없는 아티스트',
+            album: song.album || '',
+            artwork: [
+                { src: `/api/songs/${song.id}/cover`, sizes: '512x512', type: 'image/jpeg' }
+            ]
+        });
+    },
+
     // ─── 재생 제어 ───
 
     async play(song, queue = null, index = 0) {
@@ -237,6 +268,9 @@ const Player = {
         if (song.dominant_color) {
             ColorTheme.setColor(song.dominant_color);
         }
+
+        // OS 미디어 세션 메타데이터 업데이트
+        this._updateMediaSession(song);
     },
 
     togglePlay() {

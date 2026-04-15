@@ -157,6 +157,52 @@ const MiniPlayer = {
         this._updateMeta();
         this._updatePlayPause();
         this._updateProgress();
+        this._bindKeyboard();
+    },
+
+    _bindKeyboard() {
+        if (!this.pipWindow) return;
+        this.pipWindow.document.addEventListener('keydown', (e) => {
+            const tag = e.target.tagName.toLowerCase();
+            if (tag === 'input' || tag === 'textarea') return;
+
+            switch (e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    Player.togglePlay();
+                    this._updatePlayPause();
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    if (Player.audio.src) {
+                        Player.audio.currentTime = Math.max(0, Player.audio.currentTime - 5);
+                    }
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    if (Player.audio.src) {
+                        Player.audio.currentTime = Math.min(Player.audio.duration, Player.audio.currentTime + 5);
+                    }
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    Player.setVolume(Player.volume + 0.05);
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    Player.setVolume(Player.volume - 0.05);
+                    break;
+                case 'KeyM':
+                    Player.toggleMute();
+                    break;
+                case 'KeyN':
+                    if (e.shiftKey) Player.next();
+                    break;
+                case 'KeyP':
+                    if (e.shiftKey) Player.prev();
+                    break;
+            }
+        });
     },
     
     _startSync() {
