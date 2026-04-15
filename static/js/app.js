@@ -374,7 +374,7 @@ const App = {
     async _scanAll() {
         const scanBtn = document.getElementById('btn-scan-all');
         scanBtn.disabled = true;
-        scanBtn.textContent = '스캔 중...';
+        scanBtn.textContent = '스캔 준비 중...';
 
         try {
             const res = await fetch('/api/scan', {
@@ -384,35 +384,64 @@ const App = {
             });
             const data = await res.json();
 
-            if (data.success) {
-                this.showToast(`${data.scanned}곡을 스캔했습니다`);
-            } else {
-                this.showToast(data.error || '스캔 실패');
+            if (data.error) {
+                this.showToast(data.error);
+                scanBtn.disabled = false;
+                this._resetScanButton(scanBtn);
+                return;
             }
 
-            // 라이브러리 새로고침
-            await Promise.all([
-                Library.loadSongs(),
-                Library.loadAlbums(),
-                Library.loadArtists(),
-                Playlist.loadPlaylists()
-            ]);
+            // 폴링으로 진행 상황 추적
+            const pollInterval = setInterval(async () => {
+                try {
+                    const statusRes = await fetch('/api/scan/status');
+                    const status = await statusRes.json();
 
-            // 환영 화면 닫기 → 노래 뷰
-            document.getElementById('welcome-screen').classList.add('hidden');
-            this.navigate('songs');
+                    if (status.running) {
+                        if (status.total > 0) {
+                            scanBtn.textContent = `${status.total}곡 중 ${status.current}곡 스캔 중...`;
+                        } else {
+                            scanBtn.textContent = '파일 검색 중...';
+                        }
+                    } else {
+                        // 스캔 완료
+                        clearInterval(pollInterval);
+                        this.showToast(`${status.scanned}곡을 스캔했습니다`);
 
-            // 사이드바 활성화
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById('nav-songs').classList.add('active');
+                        // 라이브러리 새로고침
+                        await Promise.all([
+                            Library.loadSongs(),
+                            Library.loadAlbums(),
+                            Library.loadArtists(),
+                            Playlist.loadPlaylists()
+                        ]);
+
+                        document.getElementById('welcome-screen').classList.add('hidden');
+                        this.navigate('songs');
+
+                        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                        document.getElementById('nav-songs').classList.add('active');
+
+                        scanBtn.disabled = false;
+                        this._resetScanButton(scanBtn);
+                    }
+                } catch (e) {
+                    clearInterval(pollInterval);
+                    scanBtn.disabled = false;
+                    this._resetScanButton(scanBtn);
+                }
+            }, 500);
 
         } catch (e) {
             console.error('스캔 오류:', e);
             this.showToast('스캔 중 오류가 발생했습니다');
+            scanBtn.disabled = false;
+            this._resetScanButton(scanBtn);
         }
+    },
 
-        scanBtn.disabled = false;
-        scanBtn.innerHTML = `
+    _resetScanButton(btn) {
+        btn.innerHTML = `
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             라이브러리 다시 스캔
         `;

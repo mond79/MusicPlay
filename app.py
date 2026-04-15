@@ -7,6 +7,7 @@ import os
 import json
 import base64
 import mimetypes
+import threading
 from flask import Flask, render_template, request, jsonify, send_file, Response, abort
 from flask_cors import CORS
 
@@ -16,6 +17,15 @@ import tag_writer
 
 ARTISTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'artists')
 os.makedirs(ARTISTS_DIR, exist_ok=True)
+
+# ─── 스캔 진행 상태 (스레드 간 공유) ───
+scan_state = {
+    'running': False,
+    'current': 0,
+    'total': 0,
+    'current_file': '',
+    'scanned': 0
+}
 
 app = Flask(__name__)
 CORS(app)
@@ -131,10 +141,14 @@ def api_get_stats():
     stats = db.get_total_play_stats()
     top_artists = db.get_top_artists(5)
     top_songs = db.get_most_played_songs(5)
+    genre_dist = db.get_genre_distribution()
+    recent_activity = db.get_recent_activity()
     return jsonify({
         'summary': stats,
         'top_artists': top_artists,
-        'top_songs': top_songs
+        'top_songs': top_songs,
+        'genre_distribution': genre_dist,
+        'recent_activity': recent_activity
     })
 
 
@@ -451,28 +465,60 @@ def api_reorder_playlist(playlist_id):
 
 @app.route('/api/scan', methods=['POST'])
 def api_scan():
-    """음악 폴더 스캔"""
+    """음악 폴더 스캔 (백그라운드 스레드)"""
+    global scan_state
+
+    if scan_state['running']:
+        return jsonify({'error': '이미 스캔이 진행 중입니다'}), 409
+
     data = request.get_json() or {}
     folder = data.get('folder', '')
 
     if folder:
-        # 특정 폴더 스캔
         folders = [folder]
     else:
-        # 등록된 모든 폴더 스캔
         folders = [f['path'] for f in db.get_music_folders()]
 
     if not folders:
         return jsonify({'error': '스캔할 폴더가 없습니다', 'scanned': 0})
 
-    total_imported = 0
-    for f in folders:
-        results, count = scanner.scan_and_import(f)
-        for song_data in results:
-            db.insert_song(song_data)
+    def _scan_worker(folders_to_scan):
+        global scan_state
+        scan_state = {'running': True, 'current': 0, 'total': 0, 'current_file': '', 'scanned': 0}
+
+        # 먼저 전체 파일 수 계산
+        all_files = []
+        for f in folders_to_scan:
+            all_files.extend(scanner.scan_folder(f))
+        scan_state['total'] = len(all_files)
+
+        total_imported = 0
+        for i, file_path in enumerate(all_files):
+            scan_state['current'] = i + 1
+            scan_state['current_file'] = os.path.basename(file_path)
+
+            metadata = scanner.extract_metadata(file_path)
+            cover_path = scanner.save_cover_art(file_path)
+            if cover_path:
+                metadata['dominant_color'] = scanner.get_dominant_color(cover_path)
+
+            db.insert_song(metadata)
             total_imported += 1
 
-    return jsonify({'success': True, 'scanned': total_imported})
+        scan_state['scanned'] = total_imported
+        scan_state['running'] = False
+        scan_state['current_file'] = ''
+
+    thread = threading.Thread(target=_scan_worker, args=(folders,), daemon=True)
+    thread.start()
+
+    return jsonify({'started': True})
+
+
+@app.route('/api/scan/status')
+def api_scan_status():
+    """스캔 진행 상태 반환"""
+    return jsonify(scan_state)
 
 
 # ─── 설정 API ───

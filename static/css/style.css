@@ -1003,6 +1003,139 @@ input[type="search"]::-webkit-search-cancel-button {
     transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* ─── 장르 도넛 차트 ─── */
+.genre-chart-container {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    padding: 8px 0;
+}
+
+.genre-donut {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.genre-donut-hole {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.genre-donut-total {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.genre-donut-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+}
+
+.genre-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.genre-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.genre-legend-color {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.genre-legend-name {
+    color: var(--text-primary);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.genre-legend-pct {
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+}
+
+/* ─── 최근 7일 활동 차트 ─── */
+.activity-chart-container {
+    padding: 8px 0;
+}
+
+.activity-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    height: 150px;
+    padding: 0 8px;
+}
+
+.activity-bar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    height: 100%;
+    justify-content: flex-end;
+}
+
+.activity-bar {
+    width: 100%;
+    max-width: 40px;
+    background: linear-gradient(to top, var(--accent), var(--accent-hover, var(--accent)));
+    border-radius: 6px 6px 2px 2px;
+    transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    min-height: 4px;
+}
+
+.activity-bar-value {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+.activity-bar-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+
+.activity-summary {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 16px;
+    font-weight: 500;
+}
+
 /* ─── 앨범 상세 ─── */
 .album-detail-header {
     display: flex;

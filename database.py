@@ -256,6 +256,52 @@ def get_total_play_stats():
     return result
 
 
+def get_genre_distribution():
+    """장르별 곡 수와 총 재생 횟수를 반환합니다."""
+    conn = get_db()
+    genres = conn.execute('''
+        SELECT genre, COUNT(*) as song_count, SUM(play_count) as total_plays
+        FROM songs
+        WHERE genre != ''
+        GROUP BY genre
+        ORDER BY song_count DESC
+        LIMIT 8
+    ''').fetchall()
+    conn.close()
+    return [dict(g) for g in genres]
+
+
+def get_recent_activity():
+    """최근 7일간 일별 재생 횟수를 반환합니다."""
+    conn = get_db()
+    rows = conn.execute('''
+        SELECT DATE(last_played) as play_date, COUNT(*) as play_count
+        FROM songs
+        WHERE last_played != '' AND DATE(last_played) >= DATE('now', '-6 days')
+        GROUP BY DATE(last_played)
+        ORDER BY play_date ASC
+    ''').fetchall()
+    conn.close()
+
+    # 최근 7일 모두 채우기 (데이터 없는 날은 0)
+    from datetime import datetime, timedelta
+    result = []
+    today = datetime.now().date()
+    data_map = {r['play_date']: r['play_count'] for r in rows}
+
+    for i in range(6, -1, -1):
+        d = today - timedelta(days=i)
+        date_str = d.isoformat()
+        day_label = ['월', '화', '수', '목', '금', '토', '일'][d.weekday()]
+        result.append({
+            'date': date_str,
+            'day': day_label,
+            'count': data_map.get(date_str, 0)
+        })
+
+    return result
+
+
 def toggle_like(song_id):
     """좋아요를 토글합니다."""
     conn = get_db()
