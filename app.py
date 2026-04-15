@@ -573,6 +573,47 @@ def api_browse_folder():
     return jsonify({'path': folder_path or ''})
 
 
+@app.route('/api/tools/browse-files')
+def api_browse_files():
+    """OS 기본 파일 다중 선택 창 띄우기"""
+    import tkinter as tk
+    from tkinter import filedialog
+    
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes('-topmost', True)
+    
+    file_paths = filedialog.askopenfilenames(
+        parent=root, 
+        title="음악 파일 선택",
+        filetypes=[("Audio Files", "*.mp3 *.flac *.m4a *.wav *.ogg"), ("All Files", "*.*")]
+    )
+    root.destroy()
+    
+    return jsonify({'paths': list(file_paths)})
+
+@app.route('/api/scan/files', methods=['POST'])
+def api_scan_files():
+    """개별 파일 스캔 및 보관함 추가"""
+    data = request.get_json()
+    paths = data.get('paths', [])
+    
+    if not paths:
+        return jsonify({'error': '파일 경로가 제공되지 않았습니다'}), 400
+        
+    imported = 0
+    for path in paths:
+        if os.path.isfile(path):
+            metadata = scanner.extract_metadata(path)
+            cover_path = scanner.save_cover_art(path)
+            if cover_path:
+                metadata['dominant_color'] = scanner.get_dominant_color(cover_path)
+            
+            db.insert_song(metadata)
+            imported += 1
+            
+    return jsonify({'success': True, 'count': imported})
+
 # ─── 실행 ───
 
 if __name__ == '__main__':

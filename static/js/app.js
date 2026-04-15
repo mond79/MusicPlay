@@ -90,6 +90,52 @@ const App = {
             }
         });
 
+        // 개별 파일 추가
+        const btnAddFiles = document.getElementById('btn-add-files');
+        if (btnAddFiles) {
+            btnAddFiles.addEventListener('click', async () => {
+                const originalText = btnAddFiles.innerHTML;
+                btnAddFiles.textContent = '파일 선택 중...';
+                btnAddFiles.disabled = true;
+
+                try {
+                    // OS 파일 다이얼로그 띄우기
+                    const res = await fetch('/api/tools/browse-files');
+                    const data = await res.json();
+                    
+                    if (data.paths && data.paths.length > 0) {
+                        btnAddFiles.textContent = '스캔 중...';
+                        
+                        // 서버에 스캔 요청
+                        const scanRes = await fetch('/api/scan/files', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ paths: data.paths })
+                        });
+                        const scanData = await scanRes.json();
+                        
+                        if (scanData.success) {
+                            this.showToast(`개별 음악 파일 ${scanData.count}개가 추가되었습니다!`);
+                            document.getElementById('settings-overlay').classList.add('hidden');
+                            
+                            // 보관함 숨김 처리 해제
+                            document.getElementById('welcome-screen').classList.add('hidden');
+                            
+                            // 뷰 새로고침
+                            Library.loadSongs();
+                            this.refreshCurrentView();
+                        }
+                    }
+                } catch (e) {
+                    console.error("파일 추가 오류:", e);
+                    this.showToast('파일을 추가하는 중 오류가 발생했습니다.');
+                } finally {
+                    btnAddFiles.innerHTML = originalText;
+                    btnAddFiles.disabled = false;
+                }
+            });
+        }
+
         // 환영 화면 폴더 추가
         document.getElementById('btn-add-folder-welcome').addEventListener('click', () => {
             document.getElementById('settings-overlay').classList.remove('hidden');
