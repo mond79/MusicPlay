@@ -44,7 +44,7 @@ const Library = {
     // ─── 노래 뷰 ───
 
     renderSongs(songs, container, options = {}) {
-        const { showAlbum = true, showGenre = true, showYear = true,
+        const { showArtist = true, showAlbum = true, showGenre = true, showYear = true,
                 showPlays = true, playlistId = null, contextType = 'library' } = options;
 
         if (!container) return;
@@ -79,8 +79,10 @@ const Library = {
                 </div>
             `;
 
-            // 아티스트
-            cols += `<div class="song-cell clickable-link artist-link">${this._escapeHtml(song.artist)}</div>`;
+            // 아티스트 (조건부)
+            if (showArtist) {
+                cols += `<div class="song-cell clickable-link artist-link">${this._escapeHtml(song.artist)}</div>`;
+            }
 
             // 앨범 (조건부)
             if (showAlbum) {
@@ -416,7 +418,7 @@ const Library = {
 
         const container = document.getElementById('artist-detail-songs');
         this.renderSongs(songs, container, {
-            showGenre: false, showYear: false
+            showArtist: false, showGenre: false, showYear: false
         });
 
         App.pushHistory({ view: 'artist-detail', artist: artistName });
