@@ -229,8 +229,38 @@ const Library = {
         view.classList.remove('hidden');
         document.getElementById('songs-count').textContent = `${this.songs.length}곡`;
 
-        const container = document.getElementById('songs-list');
-        this.renderSongs(this.songs, container);
+        const sortSelect = document.getElementById('songs-sort');
+        const render = () => {
+            const sorted = this._sortSongs([...this.songs], sortSelect.value);
+            const container = document.getElementById('songs-list');
+            this.renderSongs(sorted, container);
+        };
+
+        sortSelect.onchange = render;
+        render();
+    },
+
+    _sortSongs(songs, key) {
+        switch (key) {
+            case 'title':
+                return songs.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko'));
+            case 'artist':
+                return songs.sort((a, b) => (a.artist || '').localeCompare(b.artist || '', 'ko'));
+            case 'album':
+                return songs.sort((a, b) => (a.album || '').localeCompare(b.album || '', 'ko'));
+            case 'recent':
+                return songs.sort((a, b) => (b.id || 0) - (a.id || 0));
+            case 'year-desc':
+                return songs.sort((a, b) => (b.year || 0) - (a.year || 0));
+            case 'year-asc':
+                return songs.sort((a, b) => (a.year || 0) - (b.year || 0));
+            case 'plays':
+                return songs.sort((a, b) => (b.play_count || 0) - (a.play_count || 0));
+            case 'duration':
+                return songs.sort((a, b) => (b.duration || 0) - (a.duration || 0));
+            default:
+                return songs;
+        }
     },
 
     // ─── 앨범 뷰 ───

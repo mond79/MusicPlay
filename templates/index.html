@@ -8,10 +8,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css?v=25">
-    <link rel="stylesheet" href="/static/css/player.css?v=25">
-    <link rel="stylesheet" href="/static/css/dialog.css?v=25">
-    <link rel="stylesheet" href="/static/css/context-menu.css?v=25">
+    <link rel="stylesheet" href="/static/css/style.css?v=26">
+    <link rel="stylesheet" href="/static/css/player.css?v=26">
+    <link rel="stylesheet" href="/static/css/dialog.css?v=26">
+    <link rel="stylesheet" href="/static/css/context-menu.css?v=26">
 </head>
 <body>
     <div id="app">
@@ -134,6 +134,16 @@
                     <div class="view-header">
                         <h2>노래</h2>
                         <span class="view-count" id="songs-count"></span>
+                        <select id="songs-sort" class="sort-select" title="정렬 기준">
+                            <option value="title">제목순</option>
+                            <option value="artist">아티스트순</option>
+                            <option value="album">앨범순</option>
+                            <option value="recent">최근 추가순</option>
+                            <option value="year-desc">연도 (최신)</option>
+                            <option value="year-asc">연도 (오래된)</option>
+                            <option value="plays">재생 횟수순</option>
+                            <option value="duration">시간순</option>
+                        </select>
                     </div>
                     <div class="song-list-header">
                         <div class="col-num">#</div>
@@ -877,16 +887,16 @@
     <audio id="audio-element" preload="auto"></audio>
 
     <!-- ═══ JavaScript ═══ -->
-    <script src="/static/js/color-theme.js?v=25"></script>
-    <script src="/static/js/equalizer.js?v=25"></script>
-    <script src="/static/js/player.js?v=25"></script>
-    <script src="/static/js/library.js?v=25"></script>
-    <script src="/static/js/context-menu.js?v=25"></script>
-    <script src="/static/js/song-info.js?v=25"></script>
-    <script src="/static/js/playlist.js?v=25"></script>
-    <script src="/static/js/mini-player.js?v=25"></script>
-    <script src="/static/js/stats.js?v=25"></script>
-    <script src="/static/js/visualizer.js?v=25"></script>
-    <script src="/static/js/app.js?v=25"></script>
+    <script src="/static/js/color-theme.js?v=26"></script>
+    <script src="/static/js/equalizer.js?v=26"></script>
+    <script src="/static/js/player.js?v=26"></script>
+    <script src="/static/js/library.js?v=26"></script>
+    <script src="/static/js/context-menu.js?v=26"></script>
+    <script src="/static/js/song-info.js?v=26"></script>
+    <script src="/static/js/playlist.js?v=26"></script>
+    <script src="/static/js/mini-player.js?v=26"></script>
+    <script src="/static/js/stats.js?v=26"></script>
+    <script src="/static/js/visualizer.js?v=26"></script>
+    <script src="/static/js/app.js?v=26"></script>
 </body>
 </html>
