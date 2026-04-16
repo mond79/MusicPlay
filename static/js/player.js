@@ -149,6 +149,7 @@ const Player = {
         // 키보드 단축키
         this._bindKeyboard();
         this._setupMediaSession();
+        this._bindSleepTimer();
     },
 
     // ─── 키보드 단축키 ───
@@ -835,5 +836,122 @@ const Player = {
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
+    },
+
+    // ─── 취침 타이머 ───
+
+    _sleepTimerId: null,
+    _sleepFadeInterval: null,
+    _sleepEndTime: null,
+    _sleepStatusInterval: null,
+    _originalVolume: 1,
+
+    _bindSleepTimer() {
+        const btn = document.getElementById('btn-sleep-timer');
+        const menu = document.getElementById('sleep-timer-menu');
+        if (!btn || !menu) return;
+
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('hidden');
+        });
+
+        // 바깥 클릭 시 메뉴 닫기
+        document.addEventListener('click', (e) => {
+            if (!menu.contains(e.target) && e.target !== btn) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        // 시간 옵션 클릭
+        menu.querySelectorAll('.sleep-timer-option[data-minutes]').forEach(opt => {
+            opt.addEventListener('click', () => {
+                const minutes = parseInt(opt.dataset.minutes);
+                this._startSleepTimer(minutes);
+                menu.classList.add('hidden');
+            });
+        });
+
+        // 해제 버튼
+        const cancelBtn = document.getElementById('sleep-timer-cancel');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                this._cancelSleepTimer();
+                menu.classList.add('hidden');
+            });
+        }
+    },
+
+    _startSleepTimer(minutes) {
+        this._cancelSleepTimer();
+
+        this._originalVolume = this.volume;
+        this._sleepEndTime = Date.now() + (minutes * 60 * 1000);
+
+        const btn = document.getElementById('btn-sleep-timer');
+        const cancelBtn = document.getElementById('sleep-timer-cancel');
+        const statusEl = document.getElementById('sleep-timer-status');
+
+        btn.classList.add('timer-active');
+        cancelBtn.classList.remove('hidden');
+        statusEl.classList.remove('hidden');
+
+        // 남은 시간 표시 업데이트 (매 초)
+        this._sleepStatusInterval = setInterval(() => {
+            const remaining = Math.max(0, this._sleepEndTime - Date.now());
+            const mins = Math.floor(remaining / 60000);
+            const secs = Math.floor((remaining % 60000) / 1000);
+            statusEl.textContent = `${mins}분 ${secs < 10 ? '0' : ''}${secs}초 남음`;
+        }, 1000);
+
+        // 페이드아웃 시작 시간 (마지막 30초)
+        const fadeStart = Math.max(0, (minutes * 60 - 30) * 1000);
+
+        this._sleepTimerId = setTimeout(() => {
+            // 30초에 걸쳐 볼륨 서서히 감소
+            const fadeSteps = 30;
+            let step = 0;
+            const volumeStep = this._originalVolume / fadeSteps;
+
+            this._sleepFadeInterval = setInterval(() => {
+                step++;
+                const newVol = Math.max(0, this._originalVolume - (volumeStep * step));
+                this.setVolume(newVol);
+
+                if (step >= fadeSteps) {
+                    clearInterval(this._sleepFadeInterval);
+                    this.audio.pause();
+                    this.setVolume(this._originalVolume);
+                    this._cleanupSleepTimer();
+                    if (window.App) App.showToast('취침 타이머: 음악이 정지되었습니다 🌙');
+                }
+            }, 1000);
+        }, fadeStart);
+
+        if (window.App) App.showToast(`취침 타이머: ${minutes}분 후 음악이 정지됩니다 🌙`);
+    },
+
+    _cancelSleepTimer() {
+        if (this._sleepTimerId) clearTimeout(this._sleepTimerId);
+        if (this._sleepFadeInterval) clearInterval(this._sleepFadeInterval);
+        if (this._sleepStatusInterval) clearInterval(this._sleepStatusInterval);
+        this._sleepTimerId = null;
+        this._sleepFadeInterval = null;
+        this._sleepStatusInterval = null;
+        this._sleepEndTime = null;
+        this._cleanupSleepTimer();
+    },
+
+    _cleanupSleepTimer() {
+        const btn = document.getElementById('btn-sleep-timer');
+        const cancelBtn = document.getElementById('sleep-timer-cancel');
+        const statusEl = document.getElementById('sleep-timer-status');
+        if (btn) btn.classList.remove('timer-active');
+        if (cancelBtn) cancelBtn.classList.add('hidden');
+        if (statusEl) { statusEl.classList.add('hidden'); statusEl.textContent = ''; }
+        this._sleepTimerId = null;
+        this._sleepFadeInterval = null;
+        if (this._sleepStatusInterval) clearInterval(this._sleepStatusInterval);
+        this._sleepStatusInterval = null;
     }
 };

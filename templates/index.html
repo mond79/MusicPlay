@@ -8,10 +8,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css?v=24">
-    <link rel="stylesheet" href="/static/css/player.css?v=24">
-    <link rel="stylesheet" href="/static/css/dialog.css?v=24">
-    <link rel="stylesheet" href="/static/css/context-menu.css?v=24">
+    <link rel="stylesheet" href="/static/css/style.css?v=25">
+    <link rel="stylesheet" href="/static/css/player.css?v=25">
+    <link rel="stylesheet" href="/static/css/dialog.css?v=25">
+    <link rel="stylesheet" href="/static/css/context-menu.css?v=25">
 </head>
 <body>
     <div id="app">
@@ -474,6 +474,23 @@
             <button class="btn-icon" id="btn-queue" title="재생 대기열">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
             </button>
+            <div class="sleep-timer-wrapper" style="position: relative;">
+                <button class="btn-icon" id="btn-sleep-timer" title="취침 타이머">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+                <div id="sleep-timer-menu" class="sleep-timer-menu hidden">
+                    <div class="sleep-timer-title">취침 타이머</div>
+                    <button class="sleep-timer-option" data-minutes="15">15분</button>
+                    <button class="sleep-timer-option" data-minutes="30">30분</button>
+                    <button class="sleep-timer-option" data-minutes="45">45분</button>
+                    <button class="sleep-timer-option" data-minutes="60">1시간</button>
+                    <button class="sleep-timer-option" data-minutes="90">1시간 30분</button>
+                    <button class="sleep-timer-option" data-minutes="120">2시간</button>
+                    <div class="sleep-timer-divider"></div>
+                    <button class="sleep-timer-option sleep-timer-cancel hidden" id="sleep-timer-cancel">타이머 해제</button>
+                    <div class="sleep-timer-status hidden" id="sleep-timer-status"></div>
+                </div>
+            </div>
             <div class="volume-container">
                 <button class="btn-icon btn-volume" id="btn-volume" title="볼륨">
                     <svg id="icon-volume-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
@@ -860,16 +877,16 @@
     <audio id="audio-element" preload="auto"></audio>
 
     <!-- ═══ JavaScript ═══ -->
-    <script src="/static/js/color-theme.js?v=24"></script>
-    <script src="/static/js/equalizer.js?v=24"></script>
-    <script src="/static/js/player.js?v=24"></script>
-    <script src="/static/js/library.js?v=24"></script>
-    <script src="/static/js/context-menu.js?v=24"></script>
-    <script src="/static/js/song-info.js?v=24"></script>
-    <script src="/static/js/playlist.js?v=24"></script>
-    <script src="/static/js/mini-player.js?v=24"></script>
-    <script src="/static/js/stats.js?v=24"></script>
-    <script src="/static/js/visualizer.js?v=24"></script>
-    <script src="/static/js/app.js?v=24"></script>
+    <script src="/static/js/color-theme.js?v=25"></script>
+    <script src="/static/js/equalizer.js?v=25"></script>
+    <script src="/static/js/player.js?v=25"></script>
+    <script src="/static/js/library.js?v=25"></script>
+    <script src="/static/js/context-menu.js?v=25"></script>
+    <script src="/static/js/song-info.js?v=25"></script>
+    <script src="/static/js/playlist.js?v=25"></script>
+    <script src="/static/js/mini-player.js?v=25"></script>
+    <script src="/static/js/stats.js?v=25"></script>
+    <script src="/static/js/visualizer.js?v=25"></script>
+    <script src="/static/js/app.js?v=25"></script>
 </body>
 </html>
