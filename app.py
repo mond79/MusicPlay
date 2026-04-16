@@ -365,6 +365,22 @@ def api_get_artist(artist_name):
     return jsonify(songs)
 
 
+@app.route('/api/artists/<path:artist_name>/bio', methods=['GET'])
+def api_get_artist_bio(artist_name):
+    """아티스트의 소개글 반환"""
+    bio = db.get_artist_bio(artist_name)
+    return jsonify({"bio": bio})
+
+
+@app.route('/api/artists/<path:artist_name>/bio', methods=['PUT'])
+def api_update_artist_bio(artist_name):
+    """아티스트의 소개글 업데이트"""
+    data = request.json
+    bio = data.get('bio', '')
+    db.update_artist_bio(artist_name, bio)
+    return jsonify({"success": True})
+
+
 @app.route('/api/artists/<path:artist_name>/image', methods=['GET'])
 def api_get_artist_image(artist_name):
     """아티스트의 커버 이미지 반환"""

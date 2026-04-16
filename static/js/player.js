@@ -62,9 +62,9 @@ const Player = {
             if (!this.isDragging) {
                 this._updateProgress();
             }
-            // LRC 싱크 가사 업데이트 (화면 전환 지연 보상을 위해 선행 하이라이트 시간 2.2초 적용)
+            // LRC 싱크 가사 업데이트 (화면 전환 지연 보상을 위해 선행 하이라이트 시간 3.5초 적용)
             if (this.isLrcMode && !document.getElementById('lyrics-panel').classList.contains('hidden')) {
-                this._syncLyrics(audio.currentTime + 2.2);
+                this._syncLyrics(audio.currentTime + 3.5);
             }
         });
 
@@ -485,7 +485,7 @@ const Player = {
         cover.onload = () => {
             cover.classList.add('visible');
             noCover.style.display = 'none';
-            
+
             // 다이나믹 컬러 테마 적용 (5단계)
             if (window.ColorTheme) {
                 const hexColor = ColorTheme.extractFromImage(cover);

@@ -451,6 +451,115 @@ const Library = {
             showArtist: false, showGenre: false, showYear: false
         });
 
+        // --- 아티스트 상세패널 (Bio/Credits/Stats) 로직 ---
+        document.getElementById('bio-artist-name').textContent = artistName;
+        
+        let totalPlays = 0;
+        const composers = new Set();
+        const lyricists = new Set();
+        
+        songs.forEach(song => {
+            totalPlays += song.play_count || 0;
+            if (song.composer) {
+                song.composer.split(/[,&/]/).map(s => s.trim()).filter(s => s).forEach(c => composers.add(c));
+            }
+            if (song.lyricist) {
+                song.lyricist.split(/[,&/]/).map(s => s.trim()).filter(s => s).forEach(l => lyricists.add(l));
+            }
+        });
+        
+        document.getElementById('bio-play-count').textContent = totalPlays.toLocaleString();
+        
+        const compEl = document.getElementById('bio-composers-row');
+        if (composers.size > 0) {
+            compEl.classList.remove('hidden');
+            document.getElementById('bio-composers').textContent = Array.from(composers).join(', ');
+        } else {
+            compEl.classList.add('hidden');
+        }
+
+        const lyrEl = document.getElementById('bio-lyricists-row');
+        if (lyricists.size > 0) {
+            lyrEl.classList.remove('hidden');
+            document.getElementById('bio-lyricists').textContent = Array.from(lyricists).join(', ');
+        } else {
+            lyrEl.classList.add('hidden');
+        }
+
+        // Bio fetch API
+        try {
+            const bioRes = await fetch(`/api/artists/${encodeURIComponent(artistName)}/bio`);
+            if (bioRes.ok) {
+                const bioData = await bioRes.json();
+                const display = document.getElementById('bio-display-content');
+                const textarea = document.getElementById('bio-edit-textarea');
+                
+                const bioText = bioData.bio || '';
+                display.textContent = bioText || '등록된 소개글이 없어요. ✏️버튼을 눌러 추가해보세요.';
+                textarea.value = bioText;
+            }
+        } catch (err) {
+            console.error("Bio 로딩 실패", err);
+        }
+
+        // Bio Edit Handlers (clone to avoid duplicate listeners)
+        const btnEdit = document.getElementById('btn-edit-bio');
+        const newBtnEdit = btnEdit.cloneNode(true);
+        btnEdit.parentNode.replaceChild(newBtnEdit, btnEdit);
+        
+        const btnSave = document.getElementById('btn-save-bio');
+        const newBtnSave = btnSave.cloneNode(true);
+        btnSave.parentNode.replaceChild(newBtnSave, btnSave);
+        
+        const btnCancel = document.getElementById('btn-cancel-bio');
+        const newBtnCancel = btnCancel.cloneNode(true);
+        btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
+
+        const actionsDiv = document.getElementById('bio-edit-actions');
+        const displayDiv = document.getElementById('bio-display-content');
+        const textareaDiv = document.getElementById('bio-edit-textarea');
+
+        const toggleEditMode = (isEdit) => {
+            if (isEdit) {
+                displayDiv.classList.add('hidden');
+                textareaDiv.classList.remove('hidden');
+                actionsDiv.classList.remove('hidden');
+                textareaDiv.focus();
+            } else {
+                displayDiv.classList.remove('hidden');
+                textareaDiv.classList.add('hidden');
+                actionsDiv.classList.add('hidden');
+            }
+        };
+        
+        // Reset state
+        toggleEditMode(false);
+
+        newBtnEdit.onclick = () => toggleEditMode(true);
+        newBtnCancel.onclick = () => {
+            // Restore previous value
+            textareaDiv.value = displayDiv.textContent === '등록된 소개글이 없어요. ✏️버튼을 눌러 추가해보세요.' ? '' : displayDiv.textContent;
+            toggleEditMode(false);
+        };
+
+        newBtnSave.onclick = async () => {
+            const newBio = textareaDiv.value.trim();
+            try {
+                const res = await fetch(`/api/artists/${encodeURIComponent(artistName)}/bio`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bio: newBio })
+                });
+                if (res.ok) {
+                    displayDiv.textContent = newBio || '등록된 소개글이 없어요. ✏️버튼을 눌러 추가해보세요.';
+                    toggleEditMode(false);
+                    if (window.App) App.showToast('아티스트 소개가 저장되었습니다.');
+                }
+            } catch (err) {
+                console.error("Bio 저장 실패", err);
+            }
+        };
+
         App.pushHistory({ view: 'artist-detail', artist: artistName });
     },
 

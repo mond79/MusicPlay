@@ -100,6 +100,11 @@ def init_db():
             value TEXT DEFAULT ''
         );
 
+        CREATE TABLE IF NOT EXISTS artists_info (
+            artist TEXT PRIMARY KEY,
+            bio TEXT DEFAULT ''
+        );
+
         CREATE INDEX IF NOT EXISTS idx_songs_artist ON songs(artist);
         CREATE INDEX IF NOT EXISTS idx_songs_album ON songs(album);
         CREATE INDEX IF NOT EXISTS idx_songs_genre ON songs(genre);
@@ -605,6 +610,26 @@ def set_setting(key, value):
     conn.execute(
         'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
         (key, value)
+    )
+    conn.commit()
+    conn.close()
+
+# ─── 아티스트 상세 정보 (Artist Info) ───
+
+def get_artist_bio(artist_name):
+    """아티스트의 소개글(Bio)을 반환합니다."""
+    conn = get_db()
+    row = conn.execute('SELECT bio FROM artists_info WHERE artist = ?', (artist_name,)).fetchone()
+    conn.close()
+    return row['bio'] if row else ''
+
+
+def update_artist_bio(artist_name, bio):
+    """아티스트의 소개글(Bio)을 업데이트합니다."""
+    conn = get_db()
+    conn.execute(
+        'INSERT OR REPLACE INTO artists_info (artist, bio) VALUES (?, ?)',
+        (artist_name, bio)
     )
     conn.commit()
     conn.close()
