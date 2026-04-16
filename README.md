@@ -16,9 +16,9 @@
 
 | 메인 플레이어 (Glassmorphism) | 집중 가사 모드 (LRC Sync) |
 | :---: | :---: |
-| `![Main UI](images/main-ui.png)` | `![Lyrics](images/lyrics.png)` |
+| ![Main UI](images/main-ui.png) | ![Lyrics](images/lyrics.png) |
 | **미니 플레이어 (PiP API)** | **감상 통계 대시보드 (Stats)** |
-| `![PiP](images/pip.png)` | `![Stats](images/stats.png)` |
+| ![PiP](images/pip.png) | ![Stats](images/stats.png) |
 
 *(데모 영상 링크 추가 예정)*
 
