@@ -99,6 +99,7 @@ def extract_metadata(file_path):
         'album': '',
         'album_artist': '',
         'composer': '',
+        'lyricist': '',
         'genre': '',
         'year': 0,
         'track_number': 0,
@@ -159,6 +160,7 @@ def _parse_mp3(file_path, audio, metadata):
     metadata['album'] = _get_first(tags.get('TALB'), '')
     metadata['album_artist'] = _get_first(tags.get('TPE2'), '')
     metadata['composer'] = _get_first(tags.get('TCOM'), '')
+    metadata['lyricist'] = _get_first(tags.get('TEXT'), '')
     metadata['genre'] = _get_first(tags.get('TCON'), '')
     metadata['grouping'] = _get_first(tags.get('TIT1'), '')
     metadata['comment'] = _get_first(tags.get('COMM::eng'), _get_first(tags.get('COMM'), ''))
@@ -211,6 +213,7 @@ def _parse_flac(file_path, audio, metadata):
     metadata['album'] = _get_first(tags.get('album'), '')
     metadata['album_artist'] = _get_first(tags.get('albumartist'), '')
     metadata['composer'] = _get_first(tags.get('composer'), '')
+    metadata['lyricist'] = _get_first(tags.get('lyricist'), '')
     metadata['genre'] = _get_first(tags.get('genre'), '')
     metadata['year'] = _safe_int(tags.get('date', [0]))
     metadata['comment'] = _get_first(tags.get('comment'), '')

@@ -36,6 +36,7 @@ def init_db():
             album TEXT DEFAULT '',
             album_artist TEXT DEFAULT '',
             composer TEXT DEFAULT '',
+            lyricist TEXT DEFAULT '',
             genre TEXT DEFAULT '',
             year INTEGER DEFAULT 0,
             track_number INTEGER DEFAULT 0,
@@ -106,6 +107,11 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_playlist_songs_playlist ON playlist_songs(playlist_id);
         CREATE INDEX IF NOT EXISTS idx_playlist_songs_song ON playlist_songs(song_id);
     ''')
+
+    try:
+        cursor.execute("ALTER TABLE songs ADD COLUMN lyricist TEXT DEFAULT ''")
+    except sqlite3.OperationalError:
+        pass
 
     conn.commit()
     conn.close()

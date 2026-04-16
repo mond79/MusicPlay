@@ -250,6 +250,7 @@ const SongInfo = {
         document.getElementById('info-album').value = s.album || '';
         document.getElementById('info-album-artist').value = s.album_artist || '';
         document.getElementById('info-composer').value = s.composer || '';
+        document.getElementById('info-lyricist').value = s.lyricist || '';
         document.getElementById('info-grouping').value = s.grouping || '';
         document.getElementById('info-year').value = s.year || '';
         document.getElementById('info-track-num').value = s.track_number || '';
@@ -377,6 +378,7 @@ const SongInfo = {
             album: document.getElementById('info-album').value,
             album_artist: document.getElementById('info-album-artist').value,
             composer: document.getElementById('info-composer').value,
+            lyricist: document.getElementById('info-lyricist').value,
             grouping: document.getElementById('info-grouping').value,
             genre: document.getElementById('info-genre').value,
             year: parseInt(document.getElementById('info-year').value) || 0,
