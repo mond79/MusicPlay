@@ -1850,3 +1850,277 @@ input[type="search"]::-webkit-search-cancel-button {
 #btn-sleep-timer.timer-active {
     color: var(--accent);
 }
+
+/* ═══ 연말 결산 (Wrapped) 뷰 ═══ */
+
+#view-wrapped {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 9999;
+    background: #000;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overflow: hidden;
+}
+
+#view-wrapped.hidden {
+    display: none !important;
+}
+
+.wrapped-container {
+    position: relative;
+    width: 100%;
+    max-width: 480px; /* 모바일/스토리 비율 */
+    height: 100%;
+    max-height: 850px;
+    background: linear-gradient(135deg, #FF007A, #7928CA, #FF0040);
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    overflow: hidden;
+}
+
+/* 상단 진행 바 */
+.wrapped-progress-container {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    display: flex;
+    gap: 4px;
+    z-index: 10;
+}
+
+.wrapped-progress-bar {
+    flex: 1;
+    height: 3px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.wrapped-progress-bar .fill {
+    width: 0%;
+    height: 100%;
+    background: #fff;
+    border-radius: 2px;
+}
+
+/* 슬라이드 래퍼 */
+.wrapped-slide-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.wrapped-slide {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.wrapped-slide.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* 텍스트 요소들 */
+.wrapped-title {
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    letter-spacing: -1px;
+}
+
+.wrapped-subtitle {
+    font-size: 18px;
+    font-weight: 500;
+    opacity: 0.9;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.wrapped-label {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 15px 0;
+    opacity: 0.9;
+}
+
+.wrapped-huge-text {
+    font-size: 80px;
+    font-weight: 900;
+    margin: 10px 0;
+    color: #FFF200;
+    text-transform: uppercase;
+    text-shadow: 0 5px 20px rgba(0,0,0,0.4);
+    letter-spacing: -2px;
+}
+
+/* 애니메이션 유틸리티 */
+.slide-up {
+    transform: translateY(30px);
+    opacity: 0;
+    transition: all 0.8s cubic-bezier(0.1, 0.9, 0.2, 1);
+}
+
+.wrapped-slide.active .slide-up {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.delay-1 { transition-delay: 0.3s; }
+.delay-2 { transition-delay: 0.6s; }
+
+/* 버튼 및 특정 레이아웃 */
+.btn-wrapped-start, .btn-wrapped-replay {
+    margin-top: 40px;
+    padding: 16px 40px;
+    font-size: 18px;
+    font-weight: 700;
+    border-radius: 30px;
+    border: none;
+    background: #fff;
+    color: #000;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    transition: transform 0.2s;
+}
+
+.btn-wrapped-start:hover, .btn-wrapped-replay:hover {
+    transform: scale(1.05);
+}
+
+.wrapped-hero-artist img {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit:cover;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    border: 5px solid rgba(255,255,255,0.2);
+}
+
+.wrapped-hero-artist h1 {
+    font-size: 48px;
+    line-height: 1;
+}
+
+/* Top 5 Songs */
+.wrapped-top-list {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+    text-align: left;
+    margin-top: 20px;
+}
+
+.wrapped-top-list li {
+    background: rgba(0,0,0,0.3);
+    margin-bottom: 15px;
+    padding: 15px 20px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    backdrop-filter: blur(10px);
+    transform: translateX(-20px);
+    opacity: 0;
+    transition: all 0.5s ease;
+}
+
+.wrapped-slide.active .wrapped-top-list li {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.wrapped-slide.active .wrapped-top-list li:nth-child(1) { transition-delay: 0.2s; background: rgba(255, 215, 0, 0.2); }
+.wrapped-slide.active .wrapped-top-list li:nth-child(2) { transition-delay: 0.4s; background: rgba(192, 192, 192, 0.2); }
+.wrapped-slide.active .wrapped-top-list li:nth-child(3) { transition-delay: 0.6s; background: rgba(205, 127, 50, 0.2); }
+.wrapped-slide.active .wrapped-top-list li:nth-child(4) { transition-delay: 0.8s; }
+.wrapped-slide.active .wrapped-top-list li:nth-child(5) { transition-delay: 1.0s; }
+
+.wrapped-top-list .rank {
+    font-size: 24px;
+    font-weight: 800;
+    margin-right: 15px;
+    color: rgba(255,255,255,0.7);
+}
+
+.wrapped-top-list .song-info-wrap {
+    flex: 1;
+    overflow: hidden;
+}
+.wrapped-top-list .song-title {
+    font-size: 18px;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.wrapped-top-list .song-artist {
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Genres */
+.wrapped-genres-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 30px;
+    width: 100%;
+}
+
+.wrapped-genre-badge {
+    padding: 20px;
+    border-radius: 20px;
+    font-size: 32px;
+    font-weight: 800;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wrapped-genre-badge.g1 { font-size: 40px; color: #FFF200; border: 2px solid rgba(255,242,0,0.3); }
+
+/* 터치 / 클릭 힛박스 (스토리 앞/뒤로가기) */
+.wrapped-hitbox {
+    position: absolute;
+    top: 50px; bottom: 0;
+    z-index: 8;
+    cursor: pointer;
+}
+.hitbox-left { left: 0; width: 30%; }
+.hitbox-right { right: 0; width: 70%; }
+
+.wrapped-close {
+    position: absolute;
+    top: 20px; right: 20px;
+    z-index: 20;
+    color: white;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
+}
+.wrapped-close:hover { background: rgba(0,0,0,0.5); }
+
+/* 반짝이는 메뉴 아이콘용 */
+.wrap-sparkle { color: #fe019a !important; animation: pulse 2s infinite; }
+.wrap-sparkle svg { stroke: #fe019a; }
+@keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; text-shadow: 0 0 10px #fe019a; } 100% { opacity: 0.8; } }

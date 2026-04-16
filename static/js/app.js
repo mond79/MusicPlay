@@ -266,6 +266,10 @@ const App = {
                 Stats.render();
                 this.currentView = { type: 'stats' };
                 break;
+            case 'wrapped':
+                Wrapped.show();
+                // do not push history or change background view
+                return;
         }
 
         this.pushHistory({ view: viewName });

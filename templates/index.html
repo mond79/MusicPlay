@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css?v=27">
+    <link rel="stylesheet" href="/static/css/style.css?v=28">
     <link rel="stylesheet" href="/static/css/player.css?v=27">
     <link rel="stylesheet" href="/static/css/dialog.css?v=27">
     <link rel="stylesheet" href="/static/css/context-menu.css?v=27">
@@ -50,6 +50,10 @@
                     <a href="#" class="nav-item" data-view="stats" id="nav-stats">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                         <span>내 감상 통계</span>
+                    </a>
+                    <a href="#" class="nav-item wrap-sparkle" data-view="wrapped" id="nav-wrapped">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <span>연말 결산 (Wrapped)</span>
                     </a>
                 </div>
 
@@ -393,6 +397,86 @@
                         <div class="col-like">♥</div>
                     </div>
                     <div id="search-results" class="song-list"></div>
+                </div>
+
+                <!-- 🎧 연말 결산 (Wrapped) 뷰 🎧 -->
+                <div id="view-wrapped" class="view hidden">
+                    <div class="wrapped-container" id="wrapped-container">
+                        <!-- 스토리 릴스 진행 상태 바 -->
+                        <div class="wrapped-progress-container" id="wrapped-progress">
+                            <!-- JS에서 동적 생성: <div class="wrapped-progress-bar"><div class="fill"></div></div> -->
+                        </div>
+                        
+                        <div class="wrapped-slide-wrapper">
+                            <!-- 인트로 슬라이드 -->
+                            <div class="wrapped-slide active" id="slide-intro">
+                                <h1 class="wrapped-title slide-up">당신의 1년,<br>음악으로 돌아보기</h1>
+                                <p class="wrapped-subtitle slide-up delay-1">준비되셨나요?</p>
+                                <button class="btn-wrapped-start">시작하기</button>
+                            </div>
+
+                            <!-- 슬라이드 1: 총 청취 시간 -->
+                            <div class="wrapped-slide" id="slide-time">
+                                <div class="wrapped-content slide-up">
+                                    <h2 class="wrapped-label">올해 당신은 무려</h2>
+                                    <h1 class="wrapped-huge-text" id="wrapped-total-time">0</h1>
+                                    <h2 class="wrapped-label">시간 동안 음악에 빠져 있었어요.</h2>
+                                    <p class="wrapped-subtitle">상상 이상의 재생 시간이네요!</p>
+                                </div>
+                            </div>
+
+                            <!-- 슬라이드 2: 최애 아티스트 -->
+                            <div class="wrapped-slide" id="slide-artist">
+                                <div class="wrapped-content slide-up">
+                                    <h2 class="wrapped-label">올해 당신과 가장 많이 함께한 아티스트는...</h2>
+                                    <div class="wrapped-hero-artist">
+                                        <img src="" id="wrapped-top-artist-img" alt="Artist">
+                                        <h1 class="wrapped-huge-text" id="wrapped-top-artist-name">Artist</h1>
+                                    </div>
+                                    <p class="wrapped-subtitle">이 아티스트의 곡을 <span id="wrapped-top-artist-plays">0</span>번이나 들었어요.</p>
+                                </div>
+                            </div>
+
+                            <!-- 슬라이드 3: 많이 들은 곡 -->
+                            <div class="wrapped-slide" id="slide-songs">
+                                <div class="wrapped-content slide-up">
+                                    <h2 class="wrapped-label">당신의 귀를 사로잡은 Top 5</h2>
+                                    <ul class="wrapped-top-list" id="wrapped-top-songs-list">
+                                        <!-- JS 생성 -->
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- 슬라이드 4: 가장 사랑한 장르 -->
+                            <div class="wrapped-slide" id="slide-genres">
+                                <div class="wrapped-content slide-up">
+                                    <h2 class="wrapped-label">당신의 영혼을 채운 장르</h2>
+                                    <div class="wrapped-genres-container">
+                                        <div class="wrapped-genre-badge g1"><span class="rank">#1</span> <span id="wrapped-g1">Pop</span></div>
+                                        <div class="wrapped-genre-badge g2"><span class="rank">#2</span> <span id="wrapped-g2">Rock</span></div>
+                                        <div class="wrapped-genre-badge g3"><span class="rank">#3</span> <span id="wrapped-g3">Jazz</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 슬라이드 5: 아웃트로 -->
+                            <div class="wrapped-slide" id="slide-outro">
+                                <div class="wrapped-content slide-up">
+                                    <h1 class="wrapped-title">내년에도<br>음악과 함께하세요.</h1>
+                                    <button class="btn-wrapped-replay">다시 보기</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 탭 영역 (좌/우 보이지 않는 버튼) -->
+                        <div class="wrapped-hitbox hitbox-left" id="wrapped-prev"></div>
+                        <div class="wrapped-hitbox hitbox-right" id="wrapped-next"></div>
+                        
+                        <!-- 닫기 버튼 -->
+                        <button class="btn-icon wrapped-close" id="btn-wrapped-close">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </main>
@@ -898,6 +982,7 @@
     <script src="/static/js/mini-player.js?v=27"></script>
     <script src="/static/js/stats.js?v=27"></script>
     <script src="/static/js/visualizer.js?v=27"></script>
-    <script src="/static/js/app.js?v=27"></script>
+    <script src="/static/js/app.js?v=28"></script>
+    <script src="/static/js/wrapped.js?v=28"></script>
 </body>
 </html>
