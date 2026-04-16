@@ -750,7 +750,7 @@ const Player = {
         // 현재 재생 중
         const song = this.currentSong();
         if (song) {
-            currentEl.innerHTML = this._renderQueueItem(song, true);
+            currentEl.innerHTML = this._renderQueueItem(song, true, this.currentIndex);
         } else {
             currentEl.innerHTML = '<p style="color: var(--text-tertiary); font-size: 12px;">재생 중인 곡이 없습니다</p>';
         }
@@ -758,14 +758,16 @@ const Player = {
         // 다음 재생 목록
         let html = '';
         for (let i = this.currentIndex + 1; i < this.queue.length && i < this.currentIndex + 51; i++) {
-            html += this._renderQueueItem(this.queue[i], false);
+            html += this._renderQueueItem(this.queue[i], false, i);
         }
         listEl.innerHTML = html || '<p style="color: var(--text-tertiary); font-size: 12px; padding: 8px;">다음에 재생할 곡이 없습니다</p>';
+        
+        this._bindQueueDragAndDrop();
     },
 
-    _renderQueueItem(song, isCurrent) {
+    _renderQueueItem(song, isCurrent, index) {
         return `
-            <div class="queue-item ${isCurrent ? 'current' : ''}" data-id="${song.id}">
+            <div class="queue-item ${isCurrent ? 'current' : ''}" data-id="${song.id}" data-index="${index}" ${!isCurrent ? 'draggable="true"' : ''}>
                 <img src="/api/songs/${song.id}/cover" alt="" onerror="this.style.display='none'">
                 <div class="queue-item-info">
                     <div class="queue-item-title">${this._escapeHtml(song.title)}</div>
@@ -773,6 +775,62 @@ const Player = {
                 </div>
             </div>
         `;
+    },
+
+    _bindQueueDragAndDrop() {
+        const listEl = document.getElementById('queue-list');
+        const items = listEl.querySelectorAll('.queue-item');
+        
+        items.forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', item.dataset.index);
+                e.dataTransfer.effectAllowed = 'move';
+                item.classList.add('dragging');
+            });
+            
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+                items.forEach(el => el.classList.remove('drag-over', 'drag-over-bottom'));
+            });
+            
+            item.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                const rect = item.getBoundingClientRect();
+                const midY = rect.top + rect.height / 2;
+                if (e.clientY < midY) {
+                    item.classList.add('drag-over');
+                    item.classList.remove('drag-over-bottom');
+                } else {
+                    item.classList.remove('drag-over');
+                    item.classList.add('drag-over-bottom');
+                }
+            });
+            
+            item.addEventListener('dragleave', () => {
+                item.classList.remove('drag-over', 'drag-over-bottom');
+            });
+            
+            item.addEventListener('drop', (e) => {
+                e.preventDefault();
+                item.classList.remove('drag-over', 'drag-over-bottom');
+                
+                const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                const dropIndex = parseInt(item.dataset.index);
+                
+                if (dragIndex === dropIndex) return;
+                
+                const draggedSong = this.queue.splice(dragIndex, 1)[0];
+                const rect = item.getBoundingClientRect();
+                const midY = rect.top + rect.height / 2;
+                
+                let insertIndex = e.clientY < midY ? dropIndex : dropIndex + 1;
+                if (dragIndex < insertIndex) insertIndex--; // 배열 당김 보정
+                
+                this.queue.splice(insertIndex, 0, draggedSong);
+                this._updateQueuePanel();
+            });
+        });
     },
 
     async _toggleLike(songId) {
