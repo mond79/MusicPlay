@@ -198,7 +198,32 @@ const Player = {
                         this.prev();
                     }
                     break;
+                case 'Slash':       // ? (Shift + /)
+                case 'Question':
+                    // e.key === '?' 로 확인하는 것이 가장 범용적입니다.
+                    if (e.key === '?') {
+                        e.preventDefault();
+                        document.getElementById('shortcuts-modal').classList.remove('hidden');
+                    }
+                    break;
+                case 'Escape':      // ESC: 모달 닫기
+                    document.getElementById('shortcuts-modal').classList.add('hidden');
+                    break;
             }
+            
+            // e.key를 사용한 추가 검사
+            if (e.key === '?') {
+                e.preventDefault();
+                document.getElementById('shortcuts-modal').classList.remove('hidden');
+            }
+        });
+        
+        // 버튼 닫기 연동
+        document.getElementById('btn-close-shortcuts').addEventListener('click', () => {
+            document.getElementById('shortcuts-modal').classList.add('hidden');
+        });
+        document.getElementById('btn-shortcuts-ok').addEventListener('click', () => {
+            document.getElementById('shortcuts-modal').classList.add('hidden');
         });
     },
 

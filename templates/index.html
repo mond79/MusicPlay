@@ -1006,6 +1006,56 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
     </div>
+    <!-- ═══ 단축키 도움말 모달 ═══ -->
+    <div id="shortcuts-modal" class="dialog-overlay hidden">
+        <div class="settings-dialog" style="width: 480px; max-width: 90vw;">
+            <div class="dialog-header">
+                <h2>단축키 안내</h2>
+                <button class="btn-icon" id="btn-close-shortcuts" title="닫기">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="settings-content" style="padding-top: 10px;">
+                <div class="shortcuts-list" style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: var(--text-primary);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                        <span>재생 / 일시정지</span>
+                        <kbd style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace;">Space</kbd>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                        <span>이전 곡 / 다음 곡</span>
+                        <div><kbd style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace;">&larr;</kbd> / <kbd style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace;">&rarr;</kbd></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                        <span>볼륨 조절</span>
+                        <div><kbd style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace;">&uarr;</kbd> / <kbd style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace;">&darr;</kbd></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                        <span>음소거 토글</span>
+                        <kbd style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace;">M</kbd>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                        <span>반복 모드 토글</span>
+                        <kbd style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace;">R</kbd>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                        <span>셔플 재생 토글</span>
+                        <kbd style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace;">S</kbd>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                        <span>검색창으로 이동</span>
+                        <kbd style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace;">CTRL + F</kbd>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                        <span>단축키 도움말 닫기</span>
+                        <kbd style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace;">ESC</kbd>
+                    </div>
+                </div>
+            </div>
+            <div class="dialog-footer" style="margin-top: 20px;">
+                <button class="btn-primary" id="btn-shortcuts-ok">확인</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ═══ 오디오 요소 ═══ -->
     <audio id="audio-element" preload="auto"></audio>
@@ -1013,12 +1063,12 @@
     <!-- ═══ JavaScript ═══ -->
     <script src="/static/js/color-theme.js?v=27"></script>
     <script src="/static/js/equalizer.js?v=27"></script>
-    <script src="/static/js/player.js?v=27"></script>
+    <script src="/static/js/player.js?v=30"></script>
     <script src="/static/js/library.js?v=27"></script>
     <script src="/static/js/context-menu.js?v=27"></script>
     <script src="/static/js/song-info.js?v=27"></script>
-    <script src="/static/js/playlist.js?v=27"></script>
-    <script src="/static/js/mini-player.js?v=27"></script>
+    <script src="/static/js/playlist.js?v=30"></script>
+    <script src="/static/js/mini-player.js?v=30"></script>
     <script src="/static/js/stats.js?v=27"></script>
     <script src="/static/js/visualizer.js?v=27"></script>
     <script src="/static/js/app.js?v=28"></script>

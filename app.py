@@ -450,6 +450,38 @@ def api_get_playlist_songs(playlist_id):
     return jsonify(songs)
 
 
+@app.route('/api/playlists/<int:playlist_id>/m3u')
+def api_export_playlist_m3u(playlist_id):
+    """플레이리스트 M3U 형태 다운로드"""
+    songs = db.get_playlist_songs(playlist_id)
+    conn = db.get_db()
+    pl = conn.execute('SELECT name FROM playlists WHERE id = ?', (playlist_id,)).fetchone()
+    conn.close()
+    
+    if not pl:
+        return abort(404)
+        
+    pl_name = pl['name']
+    
+    m3u_lines = ["#EXTM3U"]
+    for song in songs:
+        duration = int(song.get('duration', 0))
+        artist = song.get('artist', 'Unknown')
+        title = song.get('title', 'Unknown')
+        file_path = song.get('file_path', '')
+        
+        m3u_lines.append(f"#EXTINF:{duration},{artist} - {title}")
+        m3u_lines.append(file_path)
+        
+    m3u_text = "\n".join(m3u_lines)
+    
+    from flask import Response
+    return Response(
+        m3u_text,
+        mimetype="audio/x-mpegurl",
+        headers={"Content-disposition": f"attachment; filename={pl_name}.m3u"}
+    )
+
 @app.route('/api/playlists/<int:playlist_id>/songs', methods=['POST'])
 def api_add_to_playlist(playlist_id):
     """플레이리스트에 곡 추가"""

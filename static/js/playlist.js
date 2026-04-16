@@ -107,6 +107,7 @@ const Playlist = {
 
         menu.innerHTML = `
             <ul>
+                <li class="context-item" id="pl-ctx-export"><span>M3U 내보내기 📥</span></li>
                 <li class="context-item" id="pl-ctx-rename"><span>이름 변경</span></li>
                 <li class="context-divider"></li>
                 <li class="context-item context-danger" id="pl-ctx-delete"><span>삭제</span></li>
@@ -114,6 +115,12 @@ const Playlist = {
         `;
 
         document.body.appendChild(menu);
+
+        menu.querySelector('#pl-ctx-export').addEventListener('click', () => {
+            window.location.href = `/api/playlists/${playlist.id}/m3u`;
+            App.showToast('플레이리스트 다운로드를 시작합니다');
+            menu.remove();
+        });
 
         menu.querySelector('#pl-ctx-rename').addEventListener('click', async () => {
             const name = prompt('새 이름:', playlist.name);
