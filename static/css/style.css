@@ -2776,5 +2776,7 @@ input[type="search"]::-webkit-search-cancel-button {
         border-radius: 20px 20px 0 0 !important;
         margin-bottom: 0 !important;
         max-height: 85vh !important;
+        overflow-y: auto !important; /* 내용이 길 때 스크롤 허용 */
+        padding-bottom: 30px !important; /* 하단 여백 추가 */
     }
 }
