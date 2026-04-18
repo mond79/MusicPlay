@@ -171,8 +171,8 @@ const Library = {
                     }
                 } else {
                     // 일반 클릭: 선택 초기화 (더블클릭 전에)
-                    // 모바일 화면(768px 이하)이면 즉시 재생
-                    if (window.innerWidth <= 768) {
+                    // 모바일 및 태블릿 화면(1024px 이하)이면 즉시 재생
+                    if (window.innerWidth <= 1024) {
                         this.clearSelection();
                         Player.play(song, songs, index);
                     }

@@ -97,9 +97,17 @@ const Stats = {
                 </div>
             `;
             
-            // 곡 더블클릭 시 재생
+            // 곡 더블클릭(PC) 및 클릭(모바일) 시 재생
             row.style.cursor = 'pointer';
+            
+            row.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) {
+                    Player.play(song, songs, idx);
+                }
+            });
+            
             row.addEventListener('dblclick', () => {
+                // PC는 기존처럼 더블클릭
                 Player.play(song, songs, idx);
             });
             // 우클릭 메뉴
