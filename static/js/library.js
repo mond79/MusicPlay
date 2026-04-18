@@ -171,7 +171,11 @@ const Library = {
                     }
                 } else {
                     // 일반 클릭: 선택 초기화 (더블클릭 전에)
-                    // 더블클릭과 충돌 방지를 위해 선택만 초기화하지 않음
+                    // 모바일 화면(768px 이하)이면 즉시 재생
+                    if (window.innerWidth <= 768) {
+                        this.clearSelection();
+                        Player.play(song, songs, index);
+                    }
                     return;
                 }
                 

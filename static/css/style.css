@@ -2370,7 +2370,7 @@ input[type="search"]::-webkit-search-cancel-button {
 /* ═══ 모바일 반응형 뷰 (Mobile Responsive View) ═══ */
 @media screen and (max-width: 768px) {
     /* 1. 사이드바 숨김 및 메인 영역 조정 */
-    aside.sidebar {
+    #sidebar {
         display: none !important;
     }
     
