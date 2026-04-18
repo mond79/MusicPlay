@@ -2278,3 +2278,86 @@ input[type="search"]::-webkit-search-cancel-button {
 .queue-item[draggable="true"]:active {
     cursor: grabbing;
 }
+
+/* ─── 다중 선택 ─── */
+.song-item.selected {
+    background: rgba(252, 60, 68, 0.15) !important;
+    border-left: 3px solid var(--accent);
+}
+
+.selection-bar {
+    position: fixed;
+    bottom: calc(var(--player-height) + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(30, 30, 30, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 999;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.25s ease-out;
+}
+
+.selection-bar.hidden {
+    display: none;
+}
+
+@keyframes slideUp {
+    from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+    to   { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+.selection-count {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.selection-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sel-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.sel-btn:hover {
+    background: var(--surface-hover);
+}
+
+.sel-btn-cancel {
+    background: transparent;
+    padding: 6px;
+}
+
+.sel-btn-cancel:hover {
+    background: rgba(255, 60, 60, 0.15);
+    color: var(--error);
+}
+
+/* 다중 선택 컨텍스트 메뉴 */
+#multi-context-menu {
+    position: fixed;
+    z-index: 1001;
+}

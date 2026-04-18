@@ -7,6 +7,8 @@ const Library = {
     songs: [],
     albums: [],
     artists: [],
+    selectedSongs: [],      // 다중 선택된 곡 배열
+    lastClickedIndex: -1,   // Shift+Click 범위 선택용
 
     async loadSongs() {
         try {
@@ -136,15 +138,62 @@ const Library = {
                 });
             }
 
+            // 단일 클릭: 다중 선택 (Ctrl/Shift 지원)
+            item.addEventListener('click', (e) => {
+                // 좋아요 버튼이나 링크 클릭은 무시
+                if (e.target.closest('.song-like-btn') || e.target.closest('.clickable-link')) return;
+                
+                if (e.ctrlKey || e.metaKey) {
+                    // Ctrl+Click: 개별 토글
+                    if (item.classList.contains('selected')) {
+                        item.classList.remove('selected');
+                        this.selectedSongs = this.selectedSongs.filter(s => s.id !== song.id);
+                    } else {
+                        item.classList.add('selected');
+                        this.selectedSongs.push(song);
+                    }
+                    this.lastClickedIndex = index;
+                } else if (e.shiftKey && this.lastClickedIndex >= 0) {
+                    // Shift+Click: 범위 선택
+                    const start = Math.min(this.lastClickedIndex, index);
+                    const end = Math.max(this.lastClickedIndex, index);
+                    
+                    // 기존 선택 해제
+                    container.querySelectorAll('.song-item.selected').forEach(el => el.classList.remove('selected'));
+                    this.selectedSongs = [];
+                    
+                    for (let i = start; i <= end; i++) {
+                        const el = container.children[i];
+                        if (el) {
+                            el.classList.add('selected');
+                            this.selectedSongs.push(songs[i]);
+                        }
+                    }
+                } else {
+                    // 일반 클릭: 선택 초기화 (더블클릭 전에)
+                    // 더블클릭과 충돌 방지를 위해 선택만 초기화하지 않음
+                    return;
+                }
+                
+                this._updateSelectionBar();
+            });
+
             // 더블클릭으로 재생
             item.addEventListener('dblclick', () => {
+                // 다중 선택 해제
+                this.clearSelection();
                 Player.play(song, songs, index);
             });
 
             // 우클릭 메뉴
             item.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
-                ContextMenu.show(e, song, { playlistId, contextType, songs, index });
+                // 다중 선택 상태에서 우클릭하면 다중 컨텍스트 표시
+                if (this.selectedSongs.length > 1 && item.classList.contains('selected')) {
+                    ContextMenu.showMulti(e, this.selectedSongs);
+                } else {
+                    ContextMenu.show(e, song, { playlistId, contextType, songs, index });
+                }
             });
 
             // 좋아요 버튼 클릭
@@ -642,5 +691,90 @@ const Library = {
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
+    },
+
+    // ─── 다중 선택 ───
+
+    clearSelection() {
+        document.querySelectorAll('.song-item.selected').forEach(el => el.classList.remove('selected'));
+        this.selectedSongs = [];
+        this.lastClickedIndex = -1;
+        this._updateSelectionBar();
+    },
+
+    _updateSelectionBar() {
+        let bar = document.getElementById('selection-bar');
+        
+        if (this.selectedSongs.length === 0) {
+            if (bar) bar.classList.add('hidden');
+            return;
+        }
+
+        if (!bar) {
+            bar = document.createElement('div');
+            bar.id = 'selection-bar';
+            bar.className = 'selection-bar';
+            bar.innerHTML = `
+                <span class="selection-count"></span>
+                <div class="selection-actions">
+                    <button class="sel-btn" id="sel-play" title="선택 곡 재생">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        재생
+                    </button>
+                    <button class="sel-btn" id="sel-queue" title="대기열에 추가">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                        대기열 추가
+                    </button>
+                    <button class="sel-btn" id="sel-playlist" title="플레이리스트에 추가">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        플레이리스트
+                    </button>
+                    <button class="sel-btn sel-btn-cancel" id="sel-cancel" title="선택 해제">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(bar);
+
+            // 이벤트 바인딩
+            bar.querySelector('#sel-play').addEventListener('click', () => {
+                if (this.selectedSongs.length > 0) {
+                    Player.play(this.selectedSongs[0], this.selectedSongs, 0);
+                    this.clearSelection();
+                }
+            });
+            bar.querySelector('#sel-queue').addEventListener('click', () => {
+                this.selectedSongs.forEach(s => Player.playLast(s));
+                App.showToast(`${this.selectedSongs.length}곡을 대기열에 추가했습니다`);
+                this.clearSelection();
+            });
+            bar.querySelector('#sel-playlist').addEventListener('click', async () => {
+                const name = prompt('추가할 플레이리스트 이름 (새로 만들기):');
+                if (name) {
+                    const res = await fetch('/api/playlists', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name })
+                    });
+                    const pl = await res.json();
+                    for (const s of this.selectedSongs) {
+                        await fetch(`/api/playlists/${pl.id}/songs`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ song_id: s.id })
+                        });
+                    }
+                    App.showToast(`"${name}"에 ${this.selectedSongs.length}곡 추가 완료`);
+                    await Playlist.loadPlaylists();
+                    this.clearSelection();
+                }
+            });
+            bar.querySelector('#sel-cancel').addEventListener('click', () => {
+                this.clearSelection();
+            });
+        }
+
+        bar.querySelector('.selection-count').textContent = `${this.selectedSongs.length}곡 선택됨`;
+        bar.classList.remove('hidden');
     }
 };

@@ -184,6 +184,72 @@ const ContextMenu = {
         this.menuEl.classList.add('hidden');
         this.currentSong = null;
         this.currentContext = null;
+        // 다중 선택 메뉴 숨기기
+        const multiMenu = document.getElementById('multi-context-menu');
+        if (multiMenu) multiMenu.classList.add('hidden');
+    },
+
+    showMulti(e, songs) {
+        this.hide(); // 일반 메뉴 닫기
+        
+        let menu = document.getElementById('multi-context-menu');
+        if (!menu) {
+            menu = document.createElement('div');
+            menu.id = 'multi-context-menu';
+            menu.className = 'context-menu';
+            menu.innerHTML = `
+                <div class="ctx-header" style="padding: 8px 12px; font-size: 12px; color: var(--text-tertiary); border-bottom: 1px solid var(--border);"></div>
+                <div class="ctx-item" id="multi-play">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <span>선택 곡 재생</span>
+                </div>
+                <div class="ctx-item" id="multi-queue">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    <span>대기열에 추가</span>
+                </div>
+                <div class="ctx-divider"></div>
+                <div class="ctx-item" id="multi-delete" style="color: var(--error);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    <span>선택 곡 삭제</span>
+                </div>
+            `;
+            document.body.appendChild(menu);
+
+            menu.querySelector('#multi-play').addEventListener('click', () => {
+                Player.play(Library.selectedSongs[0], Library.selectedSongs, 0);
+                Library.clearSelection();
+                this.hide();
+            });
+            menu.querySelector('#multi-queue').addEventListener('click', () => {
+                Library.selectedSongs.forEach(s => Player.playLast(s));
+                App.showToast(`${Library.selectedSongs.length}곡을 대기열에 추가했습니다`);
+                Library.clearSelection();
+                this.hide();
+            });
+            menu.querySelector('#multi-delete').addEventListener('click', async () => {
+                const count = Library.selectedSongs.length;
+                if (confirm(`선택된 ${count}곡을 보관함에서 삭제하시겠습니까?`)) {
+                    for (const s of Library.selectedSongs) {
+                        await fetch(`/api/songs/${s.id}`, { method: 'DELETE' });
+                    }
+                    App.showToast(`${count}곡이 삭제되었습니다`);
+                    Library.clearSelection();
+                    await Promise.all([Library.loadSongs(), Library.loadAlbums(), Library.loadArtists()]);
+                    App.refreshCurrentView();
+                }
+                this.hide();
+            });
+        }
+
+        menu.querySelector('.ctx-header').textContent = `${songs.length}곡 선택됨`;
+
+        // 위치 계산
+        let x = e.clientX, y = e.clientY;
+        if (x + 200 > window.innerWidth) x = window.innerWidth - 208;
+        if (y + 200 > window.innerHeight) y = window.innerHeight - 208;
+        menu.style.left = `${x}px`;
+        menu.style.top = `${y}px`;
+        menu.classList.remove('hidden');
     },
 
     async _updatePlaylistSubmenu() {
