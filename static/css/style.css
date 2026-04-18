@@ -2361,3 +2361,195 @@ input[type="search"]::-webkit-search-cancel-button {
     position: fixed;
     z-index: 1001;
 }
+
+/* ═══ 모바일 하단 탭 바 (초기 데스크톱: 숨김) ═══ */
+.mobile-bottom-nav {
+    display: none;
+}
+
+/* ═══ 모바일 반응형 뷰 (Mobile Responsive View) ═══ */
+@media screen and (max-width: 768px) {
+    /* 1. 사이드바 숨김 및 메인 영역 조정 */
+    aside.sidebar {
+        display: none !important;
+    }
+    
+    main.main-content {
+        margin-left: 0 !important;
+        padding: 60px 16px 140px 16px !important; /* 상단 여백 유지, 하단 바(60) & 플레이어(60) 공간 넉넉히 확보 */
+    }
+
+    /* 2. 하단 탭 바 (Bottom Nav) 활성화 */
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 60px;
+        background: rgba(30, 30, 30, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid var(--border);
+        z-index: 1002;
+        justify-content: space-around;
+        align-items: center;
+        padding-bottom: env(safe-area-inset-bottom, 0px); /* iPhone 노치/인디케이터 대응 */
+    }
+
+    .mob-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-tertiary);
+        text-decoration: none;
+        gap: 4px;
+        flex: 1;
+        transition: color 0.2s;
+    }
+
+    .mob-nav-item.active {
+        color: var(--accent);
+    }
+
+    .mob-nav-item svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .mob-nav-item span {
+        font-size: 10px;
+        font-weight: 500;
+    }
+
+    /* 3. 재생 바 (Player Bar) 컴팩트화 */
+    #player-bar {
+        bottom: 60px !important; /* 바텀 네비 위에 위치 */
+        height: 60px !important;
+        padding: 0 16px !important;
+        border-radius: 0 !important; /* 좌우 꽉차게 */
+        box-shadow: 0 -4px 12px rgba(0,0,0,0.2) !important;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        z-index: 1001 !important;
+        width: 100% !important;
+        left: 0 !important;
+    }
+
+    .player-now-playing {
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+    
+    .player-song-info {
+        max-width: calc(100% - 30px) !important; /* 좋아요 버튼 공간 확보 */
+    }
+
+    #player-like-btn {
+        margin-left: auto !important;
+    }
+
+    /* 데스크톱용 불필요 영역 삭제 */
+    .player-right { display: none !important; }
+    
+    .player-center {
+        width: auto !important;
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        margin-left: 10px !important;
+    }
+
+    .player-controls {
+        gap: 8px !important;
+    }
+
+    #btn-shuffle, #btn-repeat, #btn-prev {
+        display: none !important; /* 공간 절약을 위해 재생, 다음곡만 남김 */
+    }
+
+    #btn-play, #btn-next {
+        display: flex !important;
+        transform: scale(0.9);
+    }
+
+    /* 진행 바(Progress Bar)를 얇은 선으로 플레이어 맨 위에 붙임 */
+    .player-progress {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 2px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .player-progress .time-display { display: none !important; }
+    .progress-bar-container { height: 100% !important; border-radius: 0 !important; cursor: default !important; }
+    .progress-bar-bg { background: transparent !important; }
+    .progress-bar-thumb { display: none !important; }
+
+    /* 4. 리스트 뷰 간소화 (노래 목록 테이블) */
+    .song-list-header {
+        display: none !important; /* PC용 테이블 헤더 숨김 */
+    }
+
+    .song-item {
+        grid-template-columns: 44px 1fr 34px !important; /* 아바타, 정보, 우측메뉴 */
+        padding: 10px 0 !important;
+        gap: 12px !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    }
+
+    .song-item:hover {
+        background: transparent !important; /* 모바일은 호버 효과 제거 */
+        transform: none !important;
+    }
+
+    .song-num, .song-album, .song-genre, .song-year, .song-play-count, .song-duration {
+        display: none !important; /* 불필요한 테이블 데이터 숨김 */
+    }
+    
+    .song-like-btn {
+        grid-column: 3 / 4 !important;
+        justify-self: end !important;
+    }
+
+    /* 5. 영웅 배너 (아티스트 뷰) & 카드 최적화 */
+    .hero-banner {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        padding: 30px 20px !important;
+    }
+    .hero-image-container {
+        width: 160px !important;
+        height: 160px !important;
+    }
+    .artist-action-bar {
+        justify-content: center !important;
+    }
+    .artist-content-split {
+        flex-direction: column !important;
+    }
+    .artist-bio-container {
+        position: static !important;
+        width: 100% !important;
+        margin-top: 20px !important;
+    }
+
+    /* 6. 다이얼로그 (바텀 시트) */
+    .dialog-overlay {
+        align-items: flex-end !important; /* 화면 하단에 붙이기 */
+    }
+    .settings-dialog {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 20px 20px 0 0 !important;
+        margin-bottom: 0 !important;
+        max-height: 85vh !important;
+    }
+}

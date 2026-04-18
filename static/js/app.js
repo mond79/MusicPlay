@@ -33,19 +33,34 @@ const App = {
     },
 
     _bindNavigation() {
-        // 사이드바 네비게이션
-        document.querySelectorAll('.nav-item[data-view]').forEach(item => {
+        // 사이드바 및 모바일 하단 네비게이션
+        document.querySelectorAll('.nav-item[data-view], .mob-nav-item[data-view]').forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
                 const view = item.dataset.view;
                 this.navigate(view);
 
                 // 활성 상태
-                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                document.querySelectorAll('.nav-item, .mob-nav-item').forEach(n => n.classList.remove('active'));
                 document.querySelectorAll('.playlist-nav-item').forEach(n => n.classList.remove('active'));
-                item.classList.add('active');
+                
+                // 동일한 view를 가리키는 모든 버튼 활성화
+                document.querySelectorAll(`.nav-item[data-view="${view}"], .mob-nav-item[data-view="${view}"]`).forEach(n => n.classList.add('active'));
             });
         });
+        
+        // 모바일 설정 버튼
+        const mobSettingsBtn = document.querySelector('.mob-nav-item.btn-settings');
+        if (mobSettingsBtn) {
+            mobSettingsBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('settings-overlay').classList.remove('hidden');
+                
+                // 현재 활성화된 탭 유지
+                document.querySelectorAll('.mob-nav-item').forEach(n => n.classList.remove('active'));
+                mobSettingsBtn.classList.add('active');
+            });
+        }
 
         // 뒤로/앞으로
         document.getElementById('btn-back').addEventListener('click', () => this.goBack());
