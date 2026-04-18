@@ -2769,6 +2769,7 @@ input[type="search"]::-webkit-search-cancel-button {
     /* 6. 다이얼로그 (바텀 시트) */
     .dialog-overlay {
         align-items: flex-end !important; /* 화면 하단에 붙이기 */
+        z-index: 3000 !important; /* 플레이어 및 하단 내비게이션 바보다 위에 표시 */
     }
     .settings-dialog {
         width: 100% !important;
@@ -2777,6 +2778,6 @@ input[type="search"]::-webkit-search-cancel-button {
         margin-bottom: 0 !important;
         max-height: 85vh !important;
         overflow-y: auto !important; /* 내용이 길 때 스크롤 허용 */
-        padding-bottom: 30px !important; /* 하단 여백 추가 */
+        padding-bottom: 40px !important; /* 안전 하단 여백 추가 */
     }
 }
