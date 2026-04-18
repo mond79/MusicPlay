@@ -143,6 +143,66 @@ const Player = {
             }
         });
 
+        // ─── 모바일 풀스크린 플레이어 (Now Playing) 전환 ───
+        const playerBar = document.getElementById('player-bar');
+        const nowPlaying = document.querySelector('.player-now-playing');
+        const mobileHeader = document.getElementById('player-mobile-header');
+        
+        nowPlaying.addEventListener('click', (e) => {
+            // 좋아요 버튼 클릭 시 패스하고 PC 화면에서는 무시
+            if (e.target.closest('#player-like-btn') || window.innerWidth > 768) return;
+            playerBar.classList.add('expanded');
+        });
+
+        if (mobileHeader) {
+            mobileHeader.addEventListener('click', () => {
+                playerBar.classList.remove('expanded');
+            });
+        }
+
+        // 스와이프 제스처 (아래로 쓸어내려 플레이어 닫기)
+        let touchStartY = 0;
+        let touchCurrentY = 0;
+        playerBar.addEventListener('touchstart', (e) => {
+            if (!playerBar.classList.contains('expanded')) return;
+            
+            // 가사창 내부를 터치하여 스크롤 중일 때는 스와이프 닫기 제스처 무시
+            if (e.target.closest('#lyrics-panel') || e.target.closest('.lyrics-content')) return;
+            
+            touchStartY = e.touches[0].clientY;
+            touchCurrentY = touchStartY;
+        }, { passive: true });
+
+        playerBar.addEventListener('touchmove', (e) => {
+            if (!playerBar.classList.contains('expanded') || touchStartY === 0) return;
+            if (e.target.closest('#lyrics-panel') || e.target.closest('.lyrics-content')) return;
+
+            touchCurrentY = e.touches[0].clientY;
+            const diff = touchCurrentY - touchStartY;
+            
+            // 아래로 끌어내리는 경우에만 애니메이션 작동
+            if (diff > 0) {
+                playerBar.style.transform = `translateY(${diff}px)`;
+                playerBar.style.transition = 'none';
+            }
+        }, { passive: true });
+
+        playerBar.addEventListener('touchend', (e) => {
+            if (!playerBar.classList.contains('expanded') || touchStartY === 0) return;
+            
+            const diff = touchCurrentY - touchStartY;
+            
+            // 손을 떼면 인라인 스타일 제거 (CSS 트랜지션 원복)
+            playerBar.style.transition = '';
+            playerBar.style.transform = '';
+            
+            // 120px 이상 끌어내렸으면 닫기 확정
+            if (diff > 120) {
+                playerBar.classList.remove('expanded');
+            }
+            touchStartY = 0;
+        });
+
         // 재생 속도 버튼
         document.getElementById('btn-speed').addEventListener('click', () => this.cycleSpeed());
 
