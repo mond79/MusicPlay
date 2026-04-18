@@ -150,7 +150,7 @@ const Player = {
         
         nowPlaying.addEventListener('click', (e) => {
             // 좋아요 버튼 클릭 시 패스하고 PC 화면에서는 무시
-            if (e.target.closest('#player-like-btn') || window.innerWidth > 768) return;
+            if (e.target.closest('#player-like-btn') || window.innerWidth > 1024) return;
             playerBar.classList.add('expanded');
         });
 
