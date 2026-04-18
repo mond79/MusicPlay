@@ -1,6 +1,6 @@
 """
-Music Play — Flask 메인 서버
-Apple Music / iTunes 스타일 음악 플레이어의 백엔드 API 서버입니다.
+Mond Play — Flask 메인 서버
+로컬 음원 파일을 위한 프리미엄 뮤직 플레이어의 백엔드 API 서버입니다.
 """
 
 import os

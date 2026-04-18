@@ -1,4 +1,4 @@
-# 📜 프로젝트 'Music Play' 개발 백서 (Development Whitepaper)
+# 📜 프로젝트 'Mond Play' 개발 백서 (Development Whitepaper)
 
 ## 1. 프로젝트 개요 (Overview)
 

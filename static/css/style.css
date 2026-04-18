@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════
-   Music Play — 메인 스타일시트
-   Apple Music 스타일 다크 테마
+   Mond Play — 메인 스타일시트
+   Premium Local Music Player
    ═══════════════════════════════════ */
 
 /* ─── CSS 변수 ─── */
@@ -172,14 +172,17 @@ input[type="search"]::-webkit-search-cancel-button {
 .logo {
     display: flex;
     align-items: center;
-    gap: 10px;
-    color: var(--accent);
 }
 
-.logo h1 {
-    font-size: 17px;
+.brand-logo {
+    font-family: 'Outfit', 'Inter', sans-serif;
+    font-size: 20px;
     font-weight: 700;
-    letter-spacing: -0.3px;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+}
+
+.brand-accent {
     background: linear-gradient(135deg, var(--accent), #ff8a80);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;

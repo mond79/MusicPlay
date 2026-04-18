@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Apple Music 스타일 데스크톱 음악 플레이어">
-    <title>Music Play — 음악 플레이어</title>
+    <meta name="description" content="로컬 음원 파일을 위한 프리미엄 뮤직 플레이어 — Mond Play">
+    <title>Mond Play</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css?v=31">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css?v=32">
     <link rel="stylesheet" href="/static/css/player.css?v=27">
     <link rel="stylesheet" href="/static/css/dialog.css?v=27">
     <link rel="stylesheet" href="/static/css/context-menu.css?v=27">
@@ -19,12 +20,7 @@
         <aside id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
-                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
-                        <path d="M12 2C12 2 12 8 12 12" stroke="currentColor" stroke-width="1" opacity="0.3"/>
-                    </svg>
-                    <h1>Music Play</h1>
+                    <h1 class="brand-logo"><span class="brand-accent">Mond</span>Play</h1>
                 </div>
             </div>
 
@@ -118,8 +114,8 @@
                         <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.5">
                             <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
                         </svg>
-                        <h2>Music Play에 오신 것을 환영합니다</h2>
-                        <p>음악 폴더를 추가하여 시작하세요</p>
+                        <h2>Mond Play에 오신 것을 환영합니다</h2>
+                        <p>당신만의 프리미엄 음악 라이브러리를 시작하세요</p>
                         <button class="btn-primary" id="btn-add-folder-welcome">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
                             음악 폴더 추가
@@ -1061,17 +1057,17 @@
     <audio id="audio-element" preload="auto"></audio>
 
     <!-- ═══ JavaScript ═══ -->
-    <script src="/static/js/color-theme.js?v=27"></script>
-    <script src="/static/js/equalizer.js?v=27"></script>
-    <script src="/static/js/player.js?v=31"></script>
-    <script src="/static/js/library.js?v=27"></script>
-    <script src="/static/js/context-menu.js?v=27"></script>
-    <script src="/static/js/song-info.js?v=27"></script>
-    <script src="/static/js/playlist.js?v=30"></script>
-    <script src="/static/js/mini-player.js?v=31"></script>
-    <script src="/static/js/stats.js?v=27"></script>
-    <script src="/static/js/visualizer.js?v=27"></script>
-    <script src="/static/js/app.js?v=28"></script>
+    <script src="/static/js/color-theme.js?v=32"></script>
+    <script src="/static/js/equalizer.js?v=32"></script>
+    <script src="/static/js/player.js?v=32"></script>
+    <script src="/static/js/library.js?v=32"></script>
+    <script src="/static/js/context-menu.js?v=32"></script>
+    <script src="/static/js/song-info.js?v=32"></script>
+    <script src="/static/js/playlist.js?v=32"></script>
+    <script src="/static/js/mini-player.js?v=32"></script>
+    <script src="/static/js/stats.js?v=32"></script>
+    <script src="/static/js/visualizer.js?v=32"></script>
+    <script src="/static/js/app.js?v=32"></script>
     <script src="/static/js/wrapped.js?v=28"></script>
 </body>
 </html>

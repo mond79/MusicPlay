@@ -1,5 +1,5 @@
 /**
- * Music Play — 플레이리스트 관리 모듈
+ * Mond Play — 플레이리스트 관리 모듈
  */
 
 const Playlist = {

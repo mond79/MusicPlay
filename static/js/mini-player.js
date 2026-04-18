@@ -1,5 +1,5 @@
 /**
- * Music Play — 미니 플레이어
+ * Mond Play — 미니 플레이어
  * Document Picture-in-Picture API 기반의 독립 창 음악 위젯
  */
 

@@ -1,5 +1,5 @@
 /**
- * Music Play — 시네마틱 비주얼라이저
+ * Mond Play — 시네마틱 비주얼라이저
  * Web Audio API AnalyserNode를 시각화합니다.
  */
 

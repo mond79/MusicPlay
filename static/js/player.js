@@ -1,5 +1,5 @@
 /**
- * Music Play — 재생 엔진
+ * Mond Play — 재생 엔진
  * Web Audio API 기반 음악 재생, 큐, 셔플/반복 관리
  */
 
@@ -543,7 +543,7 @@ const Player = {
         }
 
         // 페이지 제목
-        document.title = `${song.title} — ${song.artist} | Music Play`;
+        document.title = `${song.title} — ${song.artist} | Mond Play`;
 
         // MediaSession API (윈도우 알림 / 미디어 키 연동)
         this._updateMediaSession(song);

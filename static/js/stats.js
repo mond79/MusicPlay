@@ -1,5 +1,5 @@
 /**
- * Music Play — 강력한 통계 대시보드
+ * Mond Play — 강력한 통계 대시보드
  */
 
 const Stats = {

@@ -1,4 +1,4 @@
-# 🎵 Music Play (Premium Local Music Player)
+# 🎵 Mond Play — Premium Local Music Player
 
 > "방치된 로컬 음원 폴더에 Spotify의 영혼을 불어넣다."
 
@@ -69,8 +69,8 @@
 ### 1. 저장소 클론
 
 ```bash
-git clone https://github.com/mond79/MusicPlay.git
-cd MusicPlay
+git clone https://github.com/mond79/MondPlay.git
+cd MondPlay
 ```
 
 ### 2. 의존성 설치
@@ -104,7 +104,7 @@ http://localhost:5000
 ## 📁 프로젝트 구조
 
 ```
-MusicPlay/
+MondPlay/
 ├── app.py              # Flask 서버 & REST API 라우트
 ├── database.py         # SQLite3 데이터베이스 관리
 ├── music_scanner.py    # 음악 파일 스캐너 & 메타데이터 파서

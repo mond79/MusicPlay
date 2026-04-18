@@ -1,5 +1,5 @@
 /**
- * Music Play — 이퀄라이저 (10-Band EQ)
+ * Mond Play — 이퀄라이저 (10-Band EQ)
  */
 
 const Equalizer = {

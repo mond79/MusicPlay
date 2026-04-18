@@ -1,5 +1,5 @@
 /**
- * Music Play — 메인 앱 모듈
+ * Mond Play — 메인 앱 모듈
  * 초기화, 네비게이션, 설정, 라우팅을 관리합니다.
  */
 
@@ -10,7 +10,7 @@ const App = {
     toastTimer: null,
 
     async init() {
-        console.log('🎵 Music Play 초기화 중...');
+        console.log('🎵 Mond Play 초기화 중...');
 
         // 모듈 초기화
         Player.init();
@@ -29,7 +29,7 @@ const App = {
         // 데이터 로딩
         await this._loadInitialData();
 
-        console.log('🎵 Music Play 준비 완료!');
+        console.log('🎵 Mond Play 준비 완료!');
     },
 
     _bindNavigation() {
