@@ -309,10 +309,43 @@ const Player = {
         if (!this.audio.src) return;
 
         if (this.isPlaying) {
-            this.audio.pause();
+            // Soft Pause: 0.3초 동안 볼륨 서서히 줄인 후 정지
+            this._softFade('out', () => {
+                this.audio.pause();
+                this.audio.volume = this.volume; // 볼륨 원복
+            });
         } else {
+            // Soft Play: 볼륨 0에서 시작하여 0.3초 동안 서서히 올림
+            this.audio.volume = 0;
             this.audio.play();
+            this._softFade('in');
         }
+    },
+
+    // 부드러운 볼륨 페이드 (in: 올리기, out: 내리기)
+    _softFade(direction, callback) {
+        const duration = 300; // ms
+        const steps = 15;
+        const interval = duration / steps;
+        const targetVol = direction === 'in' ? this.volume : 0;
+        const startVol = direction === 'in' ? 0 : this.volume;
+        let step = 0;
+
+        const timer = setInterval(() => {
+            step++;
+            const progress = step / steps;
+            // ease-out 커브로 자연스럽게
+            const eased = direction === 'in' 
+                ? 1 - Math.pow(1 - progress, 2)
+                : Math.pow(1 - progress, 2);
+            this.audio.volume = startVol + (targetVol - startVol) * (direction === 'in' ? eased : 1 - eased);
+
+            if (step >= steps) {
+                clearInterval(timer);
+                this.audio.volume = targetVol;
+                if (callback) callback();
+            }
+        }, interval);
     },
 
     next() {

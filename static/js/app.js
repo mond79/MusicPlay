@@ -165,6 +165,14 @@ const App = {
                 }
             }
         });
+        // 볼륨 노멀라이제이션 토글
+        const normToggle = document.getElementById('norm-toggle');
+        // 저장된 상태 복원
+        normToggle.checked = localStorage.getItem('mp-norm') === 'true';
+        normToggle.addEventListener('change', (e) => {
+            Equalizer.toggleNormalization(e.target.checked);
+            App.showToast(e.target.checked ? '볼륨 노멀라이제이션 ON' : '볼륨 노멀라이제이션 OFF');
+        });
     },
 
     _bindSearch() {

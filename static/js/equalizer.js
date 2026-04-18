@@ -6,8 +6,10 @@ const Equalizer = {
     audioCtx: null,
     source: null,
     analyser: null,
+    compressor: null,
     filters: [],
     isEnabled: false,
+    isNormEnabled: false,
     
     // 10 밴드 주파수
     frequencies: [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000],
@@ -42,6 +44,10 @@ const Equalizer = {
                 }
             } catch(e) {}
         }
+
+        // 저장된 노멀라이제이션 상태 복원
+        const savedNorm = localStorage.getItem('mp-norm');
+        this.isNormEnabled = savedNorm === 'true';
     },
 
     // 실제 Web Audio API 초기화 (최초 재생 시 호출됨)
@@ -73,28 +79,24 @@ const Equalizer = {
             this.analyser = this.audioCtx.createAnalyser();
             this.analyser.fftSize = 256;
 
+            // DynamicsCompressor (볼륨 노멀라이제이션)
+            this.compressor = this.audioCtx.createDynamicsCompressor();
+            this.compressor.threshold.value = -24;
+            this.compressor.knee.value = 30;
+            this.compressor.ratio.value = 12;
+            this.compressor.attack.value = 0.003;
+            this.compressor.release.value = 0.25;
+
             // 소스 연결 체인
             this.source = this.audioCtx.createMediaElementSource(audioEl);
             
-            let prevNode = this.source;
-            this.filters.forEach(filter => {
-                prevNode.connect(filter);
-                prevNode = filter;
-            });
-            
-            // 마지막 필터를 analyser에 연결하고, analyser를 destination에 연결
-            prevNode.connect(this.analyser);
-            this.analyser.connect(this.audioCtx.destination);
+            // 체인 연결: source → filters → compressor → analyser → destination
+            this._rebuildChain();
 
             // 초기 게인 적용
             this._applyCurrentGains();
-            
-            // 끄기 상태면 바이패스
-            if (!this.isEnabled) {
-                this._bypass();
-            }
 
-            console.log('[EQ] 오디오 체인 연결 완료, analyser:', !!this.analyser);
+            console.log('[EQ] 오디오 체인 연결 완료, analyser:', !!this.analyser, ', compressor:', !!this.compressor);
         } catch (e) {
             console.error('[EQ] AudioContext 초기화 실패:', e);
             // 실패 시 상태 정리
@@ -129,20 +131,12 @@ const Equalizer = {
             this._saveState();
             
             if (!this.audioCtx) this._initAudioContext();
+            this._rebuildChain();
             
             if (this.isEnabled) {
-                if (this.audioCtx && this.source) {
-                    this.source.disconnect();
-                    let prevNode = this.source;
-                    this.filters.forEach(filter => {
-                        prevNode.connect(filter);
-                        prevNode = filter;
-                    });
-                    prevNode.connect(this.analyser);
-                }
                 document.getElementById('eq-sliders').classList.remove('disabled');
             } else {
-                this._bypass();
+                document.getElementById('eq-sliders').classList.add('disabled');
             }
         });
 
@@ -179,13 +173,43 @@ const Equalizer = {
         });
     },
 
-    _bypass() {
+    // 오디오 체인 재구성: source → [filters] → [compressor] → analyser → destination
+    _rebuildChain() {
         if (!this.audioCtx || !this.source) return;
+        
+        // 기존 연결 해제
         this.source.disconnect();
         this.filters.forEach(f => f.disconnect());
-        // 이퀄라이저를 건너뛰더라도 비주얼라이저를 위해 analyser에는 연결해줍니다.
-        this.source.connect(this.analyser);
-        document.getElementById('eq-sliders').classList.add('disabled');
+        if (this.compressor) this.compressor.disconnect();
+        if (this.analyser) this.analyser.disconnect();
+        
+        let prevNode = this.source;
+        
+        // EQ 필터 체인 (켜져있을 때만)
+        if (this.isEnabled) {
+            this.filters.forEach(filter => {
+                prevNode.connect(filter);
+                prevNode = filter;
+            });
+        }
+        
+        // 노멀라이제이션 (켜져있을 때만)
+        if (this.isNormEnabled && this.compressor) {
+            prevNode.connect(this.compressor);
+            prevNode = this.compressor;
+        }
+        
+        // 항상 analyser → destination
+        prevNode.connect(this.analyser);
+        this.analyser.connect(this.audioCtx.destination);
+    },
+
+    toggleNormalization(enabled) {
+        this.isNormEnabled = enabled;
+        localStorage.setItem('mp-norm', enabled ? 'true' : 'false');
+        if (this.audioCtx) {
+            this._rebuildChain();
+        }
     },
 
     _updateSlidersTo(gainsArray) {
