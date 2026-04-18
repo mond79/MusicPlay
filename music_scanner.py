@@ -1,5 +1,5 @@
 """
-Music Play — 음악 파일 스캐너 & 메타데이터 파서
+Mond Play — 음악 파일 스캐너 & 메타데이터 파서
 MP3, FLAC, M4A, WAV, OGG 파일을 스캔하고 메타데이터를 추출합니다.
 """
 
@@ -110,7 +110,7 @@ def extract_metadata(file_path):
         'bitrate': 0,
         'sample_rate': 0,
         'channels': 0,
-        'file_size': os.path.getsize(file_path),
+        'file_size': 0,
         'file_format': ext.upper().replace('.', ''),
         'bpm': 0,
         'lyrics': '',
@@ -118,6 +118,11 @@ def extract_metadata(file_path):
         'compilation': 0,
         'grouping': '',
     }
+
+    try:
+        metadata['file_size'] = os.path.getsize(file_path)
+    except OSError:
+        metadata['file_size'] = 0
 
     try:
         audio = MutagenFile(file_path)
@@ -143,7 +148,7 @@ def extract_metadata(file_path):
             metadata = _parse_wav(file_path, audio, metadata)
 
     except Exception as e:
-        print(f"메타데이터 추출 오류 [{file_path}]: {e}")
+        print(f"⚠️  메타데이터 추출 오류 [{file_path}]: {e}")
 
     return metadata
 
@@ -386,23 +391,36 @@ def get_dominant_color(cover_path):
 def scan_and_import(folder_path, progress_callback=None):
     """
     폴더를 스캔하고 모든 음악 파일의 메타데이터를 추출합니다.
+    개별 파일 오류 시 해당 파일만 스킵하고 스캔을 계속 진행합니다.
     반환: (song_data_list, total_count)
     """
     files = scan_folder(folder_path)
     total = len(files)
     results = []
+    skipped = 0
 
     for i, file_path in enumerate(files):
-        metadata = extract_metadata(file_path)
+        try:
+            metadata = extract_metadata(file_path)
 
-        # 커버 아트 저장 & 색상 추출
-        cover_path = save_cover_art(file_path)
-        if cover_path:
-            metadata['dominant_color'] = get_dominant_color(cover_path)
+            # 커버 아트 저장 & 색상 추출
+            try:
+                cover_path = save_cover_art(file_path)
+                if cover_path:
+                    metadata['dominant_color'] = get_dominant_color(cover_path)
+            except Exception as cover_err:
+                print(f"⚠️  커버 처리 오류 [{file_path}]: {cover_err}")
 
-        results.append(metadata)
+            results.append(metadata)
+
+        except Exception as e:
+            print(f"❌  파일 스캔 실패 (스킵) [{file_path}]: {e}")
+            skipped += 1
 
         if progress_callback:
-            progress_callback(i + 1, total, metadata.get('title', ''))
+            progress_callback(i + 1, total, os.path.basename(file_path))
+
+    if skipped > 0:
+        print(f"⚠️  스캔 완료: {len(results)}개 성공, {skipped}개 스킵")
 
     return results, total
