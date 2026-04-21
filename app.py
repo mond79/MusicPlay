@@ -51,6 +51,14 @@ def index():
     """메인 페이지"""
     return render_template('index.html')
 
+@app.route('/manifest.json')
+def serve_manifest():
+    return app.send_static_file('manifest.json')
+
+@app.route('/service-worker.js')
+def serve_service_worker():
+    return app.send_static_file('service-worker.js')
+
 
 # ─── 곡 API ───
 

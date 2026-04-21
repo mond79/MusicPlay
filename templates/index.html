@@ -13,6 +13,14 @@
     <link rel="stylesheet" href="/static/css/player.css?v=27">
     <link rel="stylesheet" href="/static/css/dialog.css?v=27">
     <link rel="stylesheet" href="/static/css/context-menu.css?v=27">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#181820">
+    <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mond Play">
 </head>
 <body>
     <div id="app">
@@ -1114,5 +1122,16 @@
     <script src="/static/js/visualizer.js?v=32"></script>
     <script src="/static/js/app.js?v=35"></script>
     <script src="/static/js/wrapped.js?v=28"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => console.log('Service Worker registered', reg))
+                    .catch(err => console.error('Service Worker registration failed', err));
+            });
+        }
+    </script>
 </body>
 </html>
