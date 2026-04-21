@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mondplay-v1';
+const CACHE_NAME = 'mondplay-v2';
 
 // 서비스 워커 설치: 오프라인 캐시는 PWA 뱃지 조건 충족을 위해 기본적으로 구현
 self.addEventListener('install', (event) => {
@@ -7,8 +7,21 @@ self.addEventListener('install', (event) => {
             return cache.addAll([
                 '/',
                 '/static/css/style.css',
+                '/static/css/player.css',
+                '/static/css/dialog.css',
+                '/static/css/context-menu.css',
                 '/static/js/app.js',
                 '/static/js/player.js',
+                '/static/js/library.js',
+                '/static/js/mini-player.js',
+                '/static/js/playlist.js',
+                '/static/js/song-info.js',
+                '/static/js/stats.js',
+                '/static/js/visualizer.js',
+                '/static/js/color-theme.js',
+                '/static/js/context-menu.js',
+                '/static/js/equalizer.js',
+                '/static/js/wrapped.js',
                 '/static/img/icon-192.png',
                 '/static/img/icon-512.png'
             ]).catch(err => {
@@ -36,7 +49,7 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// 패치: 로컬 호스트 테스트 시 통과 (Pass-through)
+// 패치: 서버 꺼짐(오프라인) 시에도 UI 껍데기가 예쁘게 유지되도록 캐시 반환
 self.addEventListener('fetch', (event) => {
     // API 호출이나 미디어 파일은 캐시하지 않고 무조건 네트워크 사용
     if (event.request.url.includes('/api/') || event.request.url.match(/\.(mp3|flac|wav)$/)) {
@@ -45,7 +58,9 @@ self.addEventListener('fetch', (event) => {
     
     event.respondWith(
         fetch(event.request).catch(() => {
-            return caches.match(event.request);
+            // 네트워크 실패(서버 꺼짐) 시 캐시에서 파일 반환.
+            // URL 뒤에 ?v=44 같은 쿼리가 붙어있어도 무시하고 원본 캐시 매칭
+            return caches.match(event.request, { ignoreSearch: true });
         })
     );
 });
