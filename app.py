@@ -15,7 +15,11 @@ import database as db
 import music_scanner as scanner
 import tag_writer
 
-ARTISTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'artists')
+# ─── 경로 설정 (PyInstaller exe 패키징 호환) ───
+BASE_DIR = os.environ.get('MONDPLAY_BASE_DIR', os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.environ.get('MONDPLAY_DATA_DIR', os.path.join(BASE_DIR, 'data'))
+
+ARTISTS_DIR = os.path.join(DATA_DIR, 'artists')
 os.makedirs(ARTISTS_DIR, exist_ok=True)
 
 # ─── 스캔 진행 상태 (스레드 간 공유) ───
@@ -27,7 +31,11 @@ scan_state = {
     'scanned': 0
 }
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'static')
+)
 CORS(app)
 
 @app.after_request

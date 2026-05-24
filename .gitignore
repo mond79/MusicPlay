@@ -1,24 +1,37 @@
-# Python dependencies
+# ─── Python ───────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyo
 
-# User Data & Covers (DO NOT UPLOAD)
+# ─── 사용자 데이터 (개인정보 - 절대 업로드 금지) ────────
 data/
 music.db
 
-# Test folders
+# ─── 테스트 음악 폴더 ───────────────────────────────────
 test_music/
 
-# Virtual Environments
+# ─── 가상환경 ────────────────────────────────────────────
 venv/
 env/
 .env
 
-# Editor/OS settings
+# ─── PyInstaller 빌드 결과물 (용량 너무 큼, 빌드 후 생성됨) ─
+build/
+dist/
+*.spec.bak
+__pycache__/
+
+# ─── Inno Setup 설치 파일 출력 폴더 ─────────────────────
+installer_output/
+
+# ─── 에디터 / OS 설정 ────────────────────────────────────
 .vscode/
 .idea/
 .DS_Store
+Thumbs.db
 
+# ─── 기타 ────────────────────────────────────────────────
 run.bat
-.png
+*.png
+*.log
