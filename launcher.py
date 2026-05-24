@@ -41,9 +41,12 @@ def main():
     base_dir = get_base_dir()
     os.environ['MONDPLAY_BASE_DIR'] = base_dir
 
-    # 데이터 디렉토리는 실행파일 옆에 (사용자 데이터 보존)
+    # 데이터 디렉토리:
+    #   - exe 설치 버전: %APPDATA%\MondPlay  (C:\Users\사용자\AppData\Roaming\MondPlay)
+    #   - 개발 모드:      프로젝트 루트의 data/ 폴더
     if getattr(sys, 'frozen', False):
-        data_dir = os.path.join(os.path.dirname(sys.executable), 'MondPlay_Data')
+        appdata = os.environ.get('APPDATA', os.path.expanduser('~'))
+        data_dir = os.path.join(appdata, 'MondPlay')
     else:
         data_dir = os.path.join(base_dir, 'data')
     os.environ['MONDPLAY_DATA_DIR'] = data_dir

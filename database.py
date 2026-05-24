@@ -8,7 +8,11 @@ import os
 import json
 from datetime import datetime
 
-DB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+# 경로 설정: launcher.py가 설정한 환경변수 우선, 없으면 현재 파일 위치의 data 폴더
+DB_DIR = os.environ.get(
+    'MONDPLAY_DATA_DIR',
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+)
 DB_PATH = os.path.join(DB_DIR, 'music.db')
 
 
