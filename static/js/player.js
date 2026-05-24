@@ -9,6 +9,8 @@ const Player = {
     currentIndex: -1,
     isPlaying: false,
     isShuffle: false,
+    shuffleOrder: [],   // 셀플 모드에서 미리 섭어둘 재생 순서 (queue 인덱스 나열)
+    shufflePos: -1,     // shuffleOrder 내 현재 위치
     repeatMode: 'none', // 'none' | 'all' | 'one'
     volume: 1,
     isMuted: false,
@@ -417,11 +419,26 @@ const Player = {
             return;
         }
 
-        let nextIndex;
         if (this.isShuffle) {
-            nextIndex = Math.floor(Math.random() * this.queue.length);
+            // shuffleOrder 리스트를 따라 다음 위치로 이동
+            const nextPos = this.shufflePos + 1;
+            if (nextPos >= this.shuffleOrder.length) {
+                if (this.repeatMode === 'all') {
+                    // 전체 반복: 순서 다시 섭기
+                    this._buildShuffleOrder();
+                    this.shufflePos = 0;
+                } else {
+                    this.audio.pause();
+                    return;
+                }
+            } else {
+                this.shufflePos = nextPos;
+            }
+            const nextIndex = this.shuffleOrder[this.shufflePos];
+            this.currentIndex = nextIndex;
+            this.play(this.queue[nextIndex]);
         } else {
-            nextIndex = this.currentIndex + 1;
+            let nextIndex = this.currentIndex + 1;
             if (nextIndex >= this.queue.length) {
                 if (this.repeatMode === 'all') {
                     nextIndex = 0;
@@ -430,26 +447,34 @@ const Player = {
                     return;
                 }
             }
+            this.currentIndex = nextIndex;
+            this.play(this.queue[nextIndex]);
         }
-
-        this.currentIndex = nextIndex;
-        this.play(this.queue[nextIndex]);
     },
 
     prev() {
         if (this.queue.length === 0) return;
 
-        // 3초 이상 재생했으면 처음으로
+        // 3초 이상 재생했으면 시작으로
         if (this.audio.currentTime > 3) {
             this.audio.currentTime = 0;
             return;
         }
 
-        let prevIndex;
         if (this.isShuffle) {
-            prevIndex = Math.floor(Math.random() * this.queue.length);
+            // shuffleOrder에서 역방향 이동
+            const prevPos = this.shufflePos - 1;
+            if (prevPos < 0) {
+                // 시작에 도달하면 현재 곡 복시
+                this.audio.currentTime = 0;
+                return;
+            }
+            this.shufflePos = prevPos;
+            const prevIndex = this.shuffleOrder[this.shufflePos];
+            this.currentIndex = prevIndex;
+            this.play(this.queue[prevIndex]);
         } else {
-            prevIndex = this.currentIndex - 1;
+            let prevIndex = this.currentIndex - 1;
             if (prevIndex < 0) {
                 if (this.repeatMode === 'all') {
                     prevIndex = this.queue.length - 1;
@@ -457,10 +482,9 @@ const Player = {
                     prevIndex = 0;
                 }
             }
+            this.currentIndex = prevIndex;
+            this.play(this.queue[prevIndex]);
         }
-
-        this.currentIndex = prevIndex;
-        this.play(this.queue[prevIndex]);
     },
 
     // ─── 큐 관리 ───
@@ -491,6 +515,29 @@ const Player = {
         this.isShuffle = !this.isShuffle;
         document.getElementById('btn-shuffle').classList.toggle('active', this.isShuffle);
         localStorage.setItem('mp-shuffle', this.isShuffle);
+        if (this.isShuffle) {
+            this._buildShuffleOrder();
+            this.shufflePos = 0; // 다음 곡부터 시작
+        } else {
+            this.shuffleOrder = [];
+            this.shufflePos = -1;
+        }
+        this._updateQueuePanel();
+    },
+
+    // Fisher-Yates 셀플로 현재 곡 제외한 나머지 순서 섭기
+    _buildShuffleOrder() {
+        const indices = [];
+        for (let i = 0; i < this.queue.length; i++) {
+            if (i !== this.currentIndex) indices.push(i);
+        }
+        // Fisher-Yates 알고리즘
+        for (let i = indices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
+        this.shuffleOrder = indices;
+        this.shufflePos = -1;
     },
 
     toggleRepeat() {
@@ -840,6 +887,11 @@ const Player = {
         const currentEl = document.getElementById('queue-current');
         const listEl = document.getElementById('queue-list');
 
+        // 셔플 모드에서 미리 다음 곡 예약이 안 돼 있으면 예약
+        if (this.isShuffle && this.shuffleNextIndex === -1 && this.queue.length > 1) {
+            this.shuffleNextIndex = this._pickShuffleIndex();
+        }
+
         // 현재 재생 중
         const song = this.currentSong();
         if (song) {
@@ -850,8 +902,18 @@ const Player = {
 
         // 다음 재생 목록
         let html = '';
-        for (let i = this.currentIndex + 1; i < this.queue.length && i < this.currentIndex + 51; i++) {
-            html += this._renderQueueItem(this.queue[i], false, i);
+        if (this.isShuffle) {
+            // 셀플 모드: shufflePos 이후의 나머지 shuffleOrder 순서를 표시
+            const startPos = this.shufflePos + 1;
+            for (let p = startPos; p < this.shuffleOrder.length && p < startPos + 50; p++) {
+                const qIdx = this.shuffleOrder[p];
+                html += this._renderQueueItem(this.queue[qIdx], false, qIdx);
+            }
+        } else {
+            // 일반 모드: currentIndex 이후 순서대로 표시
+            for (let i = this.currentIndex + 1; i < this.queue.length && i < this.currentIndex + 51; i++) {
+                html += this._renderQueueItem(this.queue[i], false, i);
+            }
         }
         listEl.innerHTML = html || '<p style="color: var(--text-tertiary); font-size: 12px; padding: 8px;">다음에 재생할 곡이 없습니다</p>';
         
@@ -875,6 +937,14 @@ const Player = {
         const items = listEl.querySelectorAll('.queue-item');
         
         items.forEach(item => {
+            // ── 클릭 / 더블클릭으로 바로 재생 ──
+            item.addEventListener('dblclick', () => this._playQueueItemByIndex(parseInt(item.dataset.index)));
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) {
+                    this._playQueueItemByIndex(parseInt(item.dataset.index));
+                }
+            });
+
             item.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', item.dataset.index);
                 e.dataTransfer.effectAllowed = 'move';
@@ -924,6 +994,22 @@ const Player = {
                 this._updateQueuePanel();
             });
         });
+    },
+
+    // 큐 패널에서 특정 인덱스(queue index)의 곡을 클릭했을 때 바로 재생
+    _playQueueItemByIndex(queueIndex) {
+        if (queueIndex < 0 || queueIndex >= this.queue.length) return;
+
+        if (this.isShuffle) {
+            // shuffleOrder에서 클릭한 queueIndex가 몇 번째 위치인지 찾아 shufflePos 동기화
+            const posInOrder = this.shuffleOrder.indexOf(queueIndex);
+            if (posInOrder !== -1) {
+                this.shufflePos = posInOrder;
+            }
+        }
+
+        this.currentIndex = queueIndex;
+        this.play(this.queue[queueIndex]);
     },
 
     async _toggleLike(songId) {
