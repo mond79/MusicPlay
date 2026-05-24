@@ -52,6 +52,9 @@ const Library = {
         if (!container) return;
         container.innerHTML = '';
 
+        // DocumentFragment로 모아서 DOM 조작을 단 1회로 (리플로우 최소화)
+        const fragment = document.createDocumentFragment();
+
         songs.forEach((song, index) => {
             const item = document.createElement('div');
             item.className = 'song-item';
@@ -75,8 +78,8 @@ const Library = {
             // 제목 + 미니 커버
             cols += `
                 <div class="song-title-cell">
-                    <img class="song-mini-cover" src="/api/songs/${song.id}/cover" alt=""
-                         onerror="this.style.background='var(--surface)'; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23555%22 stroke-width=%221.5%22><path d=%22M9 18V5l12-2v13%22/><circle cx=%226%22 cy=%2218%22 r=%223%22/><circle cx=%2218%22 cy=%2216%22 r=%223%22/></svg>'">
+                    <img class="song-mini-cover lazy-cover" data-src="/api/songs/${song.id}/cover" alt=""
+                         onerror="this.style.background='var(--surface)'; this.removeAttribute('src');">
                     <span class="song-title">${this._escapeHtml(song.title || '알 수 없는 곡')}</span>
                 </div>
             `;
@@ -272,8 +275,14 @@ const Library = {
                 });
             }
 
-            container.appendChild(item);
+            fragment.appendChild(item);
         });
+
+        // 모아둔 DOM을 한 번에 삽입 (리플로우 1회)
+        container.appendChild(fragment);
+
+        // 이미지 지연 로딩 시작
+        this._initLazyLoad(container);
     },
 
     showSongsView() {
@@ -291,6 +300,39 @@ const Library = {
 
         sortSelect.onchange = render;
         render();
+    },
+
+    // ─── 이미지 Lazy Load ───
+    _lazyObserver: null,
+
+    _initLazyLoad(container) {
+        // 기존 옵저버 해제
+        if (this._lazyObserver) {
+            this._lazyObserver.disconnect();
+        }
+
+        this._lazyObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    const src = img.dataset.src;
+                    if (src) {
+                        img.src = src;
+                        img.removeAttribute('data-src');
+                    }
+                    this._lazyObserver.unobserve(img);
+                }
+            });
+        }, {
+            root: container.closest('.view-panel, .content-area, #main-content') || null,
+            rootMargin: '200px 0px',  // 200px 미리 로드
+            threshold: 0
+        });
+
+        // 현재 컨테이너 내 모든 lazy-cover 이미지 관찰 등록
+        container.querySelectorAll('img.lazy-cover').forEach(img => {
+            this._lazyObserver.observe(img);
+        });
     },
 
     _sortSongs(songs, key) {

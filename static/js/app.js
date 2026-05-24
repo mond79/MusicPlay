@@ -10,7 +10,10 @@ const App = {
     toastTimer: null,
 
     async init() {
-        console.log('🎵 Mond Play 초기화 중...');
+        // 앱 컨테이너를 처음엔 숨겨두고 준비 완료 후 부드럽게 페이드인
+        const appEl = document.getElementById('app');
+        appEl.style.opacity = '0';
+        appEl.style.transition = 'opacity 0.35s ease';
 
         // 모듈 초기화
         Player.init();
@@ -29,7 +32,10 @@ const App = {
         // 데이터 로딩
         await this._loadInitialData();
 
-        console.log('🎵 Mond Play 준비 완료!');
+        // 모두 준비됐으면 부드럽게 나타내기
+        requestAnimationFrame(() => {
+            appEl.style.opacity = '1';
+        });
     },
 
     _bindNavigation() {
