@@ -16,7 +16,13 @@ from mutagen.id3 import ID3
 from PIL import Image
 
 SUPPORTED_EXTENSIONS = {'.mp3', '.flac', '.m4a', '.aac', '.wav', '.ogg'}
-COVER_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'covers')
+
+# 경로 설정: launcher.py가 설정한 환경변수 우선, 없으면 현재 파일 위치의 data 폴더
+_DATA_DIR = os.environ.get(
+    'MONDPLAY_DATA_DIR',
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+)
+COVER_DIR = os.path.join(_DATA_DIR, 'covers')
 
 
 def ensure_cover_dir():
