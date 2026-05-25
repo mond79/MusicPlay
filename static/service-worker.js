@@ -49,18 +49,7 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// 패치: 서버 꺼짐(오프라인) 시에도 UI 껍데기가 예쁘게 유지되도록 캐시 반환
+// 패치: 무조건 네트워크에서 최신 파일 가져오기 (개발 및 캐시 무력화용)
 self.addEventListener('fetch', (event) => {
-    // API 호출이나 미디어 파일은 캐시하지 않고 무조건 네트워크 사용
-    if (event.request.url.includes('/api/') || event.request.url.match(/\.(mp3|flac|wav)$/)) {
-        return;
-    }
-    
-    event.respondWith(
-        fetch(event.request).catch(() => {
-            // 네트워크 실패(서버 꺼짐) 시 캐시에서 파일 반환.
-            // URL 뒤에 ?v=44 같은 쿼리가 붙어있어도 무시하고 원본 캐시 매칭
-            return caches.match(event.request, { ignoreSearch: true });
-        })
-    );
+    event.respondWith(fetch(event.request));
 });

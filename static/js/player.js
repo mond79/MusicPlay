@@ -64,9 +64,10 @@ const Player = {
             if (!this.isDragging) {
                 this._updateProgress();
             }
-            // LRC 싱크 가사 업데이트 (화면 전환 지연 보상을 위해 선행 하이라이트 시간 3.5초 적용)
+            // LRC 싱크 가사 업데이트 (동적 곡별 오프셋 적용)
             if (this.isLrcMode && !document.getElementById('lyrics-panel').classList.contains('hidden')) {
-                this._syncLyrics(audio.currentTime + 3.5);
+                const offset = this._getCurrentLrcOffset();
+                this._syncLyrics(audio.currentTime + offset);
             }
         });
 
@@ -212,6 +213,48 @@ const Player = {
         this._bindKeyboard();
         this._setupMediaSession();
         this._bindSleepTimer();
+
+        // ─── LRC 가사 싱크 미세조정 ───
+        const syncPanel = document.getElementById('lrc-sync-controls');
+        if (syncPanel) {
+            syncPanel.querySelectorAll('.btn-lrc-offset').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const song = this.currentSong();
+                    if (!song || !this.isLrcMode) return;
+
+                    const delta = parseFloat(btn.dataset.offset);
+                    const currentOffset = this._getCurrentLrcOffset();
+                    let newOffset = parseFloat((currentOffset + delta).toFixed(1));
+                    
+                    // 최대 ±10초 한계 설정
+                    newOffset = Math.max(-10, Math.min(10, newOffset));
+
+                    const songOffsetKey = `mp-lrc-offset-song-${song.id}`;
+                    localStorage.setItem(songOffsetKey, newOffset);
+
+                    this._updateLrcOffsetUI(newOffset);
+                    this._syncLyrics(this.audio.currentTime + newOffset);
+                    
+                    if (window.App) App.showToast(`가사 싱크를 ${newOffset > 0 ? '+' : ''}${newOffset}초 조절했습니다`);
+                });
+            });
+
+            const resetBtn = document.getElementById('btn-lrc-offset-reset');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    const song = this.currentSong();
+                    if (!song || !this.isLrcMode) return;
+
+                    const songOffsetKey = `mp-lrc-offset-song-${song.id}`;
+                    localStorage.removeItem(songOffsetKey);
+
+                    this._updateLrcOffsetUI(0.0);
+                    this._syncLyrics(this.audio.currentTime);
+                    
+                    if (window.App) App.showToast('가사 싱크를 초기화했습니다');
+                });
+            }
+        }
     },
 
     // ─── 키보드 단축키 ───
@@ -865,14 +908,21 @@ const Player = {
             spacerBottom.className = 'lrc-spacer';
             wrapper.appendChild(spacerBottom);
 
-            // 현재 시간 기준으로 즉시 싱크
-            this._syncLyrics(this.audio.currentTime);
+            // 현재 시간 기준으로 즉시 싱크 (오프셋 반영)
+            this._syncLyrics(this.audio.currentTime + this._getCurrentLrcOffset());
 
             // LRC 모드 안내 배지
             const badge = document.createElement('div');
             badge.className = 'lrc-badge';
             badge.textContent = 'LRC 싱크 가사';
             container.appendChild(badge);
+
+            // LRC 싱크 컨트롤러 표시 및 현재 오프셋 적용
+            const syncControls = document.getElementById('lrc-sync-controls');
+            if (syncControls) {
+                syncControls.classList.remove('hidden');
+                this._updateLrcOffsetUI(this._getCurrentLrcOffset());
+            }
         } else {
             // 일반 텍스트 가사
             this.isLrcMode = false;
@@ -880,6 +930,11 @@ const Player = {
             container.innerHTML = '<div class="plain-lyrics"><pre class="plain-lyrics-pre">' +
                 escaped +
                 '</pre></div>';
+
+            const syncControls = document.getElementById('lrc-sync-controls');
+            if (syncControls) {
+                syncControls.classList.add('hidden');
+            }
         }
     },
 
@@ -1215,5 +1270,31 @@ const Player = {
         this._sleepFadeInterval = null;
         if (this._sleepStatusInterval) clearInterval(this._sleepStatusInterval);
         this._sleepStatusInterval = null;
+    },
+
+    // ─── LRC 싱크 헬퍼 함수 ───
+
+    _getCurrentLrcOffset() {
+        const song = this.currentSong();
+        if (!song) return 0.0;
+        
+        // 곡별 오프셋 로드
+        const songOffsetKey = `mp-lrc-offset-song-${song.id}`;
+        const savedSongOffset = localStorage.getItem(songOffsetKey);
+        if (savedSongOffset !== null) {
+            return parseFloat(savedSongOffset);
+        }
+        
+        // 없으면 기본 오프셋 로드 (추후 전역 설정 시 활용)
+        const savedGlobalOffset = localStorage.getItem('mp-lrc-offset-global');
+        return savedGlobalOffset !== null ? parseFloat(savedGlobalOffset) : 0.0;
+    },
+
+    _updateLrcOffsetUI(offset) {
+        const valEl = document.getElementById('lrc-sync-offset-val');
+        if (valEl) {
+            const formatted = (offset > 0 ? '+' : '') + offset.toFixed(1) + 's';
+            valEl.textContent = formatted;
+        }
     }
 };

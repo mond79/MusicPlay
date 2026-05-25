@@ -1459,6 +1459,47 @@ input[type="search"]::-webkit-search-cancel-button {
     font-weight: 700;
 }
 
+/* ─── 가사 싱크 조절 컨트롤러 ─── */
+.lrc-sync-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    margin-right: 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    backdrop-filter: blur(10px);
+    transition: opacity var(--transition-fast);
+}
+
+.btn-lrc-offset, #btn-lrc-offset-reset {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: all var(--transition-fast);
+}
+
+.btn-lrc-offset:hover, #btn-lrc-offset-reset:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+
+#lrc-sync-offset-val {
+    font-family: monospace;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 45px;
+    text-align: center;
+}
+
 /* ─── 가사 컨텐츠 영역 ─── */
 .lyrics-content {
     flex: 1;
