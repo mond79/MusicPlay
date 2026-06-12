@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mondplay-v2';
+const CACHE_NAME = 'mondplay-v3';
 
 // 서비스 워커 설치: 오프라인 캐시는 PWA 뱃지 조건 충족을 위해 기본적으로 구현
 self.addEventListener('install', (event) => {
@@ -49,7 +49,23 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// 패치: 무조건 네트워크에서 최신 파일 가져오기 (개발 및 캐시 무력화용)
+// 패치: Network First 전략 (최신 파일 우선, 실패 시 오프라인 캐시 제공)
 self.addEventListener('fetch', (event) => {
-    event.respondWith(fetch(event.request));
+    // API 호출이나 미디어 파일은 캐시하지 않음
+    if (event.request.url.includes('/api/') || event.request.url.match(/\.(mp3|flac|wav)$/)) {
+        return;
+    }
+    
+    event.respondWith(
+        fetch(event.request).then((networkResponse) => {
+            // 네트워크 요청 성공 시 캐시에 최신 파일 덮어쓰기
+            return caches.open(CACHE_NAME).then((cache) => {
+                cache.put(event.request, networkResponse.clone());
+                return networkResponse;
+            });
+        }).catch(() => {
+            // 네트워크 실패(서버 꺼짐 등 오프라인 상태) 시 기존 캐시 반환
+            return caches.match(event.request, { ignoreSearch: true });
+        })
+    );
 });
