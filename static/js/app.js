@@ -97,65 +97,10 @@ const App = {
             if (e.key === 'Enter') this._addFolder();
         });
 
-        // 폴더 추가: 찾아보기 버튼
-        document.getElementById('btn-browse-folder').addEventListener('click', async () => {
-            try {
-                const res = await fetch('/api/tools/browse-folder');
-                const data = await res.json();
-                if (data.path) {
-                    document.getElementById('folder-path-input').value = data.path;
-                }
-            } catch (e) {
-                console.error("폴더 선택 오류:", e);
-                this.showToast('폴더 선택 창을 띄울 수 없습니다');
-            }
+        // 폴더 추가: 찾아보기 버튼 (웹 모달 띄우기)
+        document.getElementById('btn-browse-folder').addEventListener('click', () => {
+            this._openDirBrowser();
         });
-
-        // 개별 파일 추가
-        const btnAddFiles = document.getElementById('btn-add-files');
-        if (btnAddFiles) {
-            btnAddFiles.addEventListener('click', async () => {
-                const originalText = btnAddFiles.innerHTML;
-                btnAddFiles.textContent = '파일 선택 중...';
-                btnAddFiles.disabled = true;
-
-                try {
-                    // OS 파일 다이얼로그 띄우기
-                    const res = await fetch('/api/tools/browse-files');
-                    const data = await res.json();
-                    
-                    if (data.paths && data.paths.length > 0) {
-                        btnAddFiles.textContent = '스캔 중...';
-                        
-                        // 서버에 스캔 요청
-                        const scanRes = await fetch('/api/scan/files', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ paths: data.paths })
-                        });
-                        const scanData = await scanRes.json();
-                        
-                        if (scanData.success) {
-                            this.showToast(`개별 음악 파일 ${scanData.count}개가 추가되었습니다!`);
-                            document.getElementById('settings-overlay').classList.add('hidden');
-                            
-                            // 보관함 숨김 처리 해제
-                            document.getElementById('welcome-screen').classList.add('hidden');
-                            
-                            // 뷰 새로고침
-                            Library.loadSongs();
-                            this.refreshCurrentView();
-                        }
-                    }
-                } catch (e) {
-                    console.error("파일 추가 오류:", e);
-                    this.showToast('파일을 추가하는 중 오류가 발생했습니다.');
-                } finally {
-                    btnAddFiles.innerHTML = originalText;
-                    btnAddFiles.disabled = false;
-                }
-            });
-        }
 
         // 환영 화면 폴더 추가
         document.getElementById('btn-add-folder-welcome').addEventListener('click', () => {
@@ -452,8 +397,18 @@ const App = {
 
     async _scanAll() {
         const scanBtn = document.getElementById('btn-scan-all');
+        const progressContainer = document.getElementById('scan-progress-container');
+        const progressBar = document.getElementById('scan-progress-bar');
+        const statusText = document.getElementById('scan-status-text');
+        const countText = document.getElementById('scan-count-text');
+        
         scanBtn.disabled = true;
-        scanBtn.textContent = '스캔 준비 중...';
+        scanBtn.style.display = 'none';
+        progressContainer.style.display = 'block';
+        
+        statusText.innerHTML = '스캔 준비 중... <span id="scan-current-file" style="opacity: 0.6; margin-left: 6px;"></span>';
+        progressBar.style.width = '0%';
+        countText.textContent = '';
 
         try {
             const res = await fetch('/api/scan', {
@@ -465,8 +420,7 @@ const App = {
 
             if (data.error) {
                 this.showToast(data.error);
-                scanBtn.disabled = false;
-                this._resetScanButton(scanBtn);
+                this._resetScanUI();
                 return;
             }
 
@@ -478,9 +432,13 @@ const App = {
 
                     if (status.running) {
                         if (status.total > 0) {
-                            scanBtn.textContent = `${status.total}곡 중 ${status.current}곡 스캔 중...`;
+                            const percent = Math.min(100, Math.round((status.current / status.total) * 100));
+                            document.getElementById('scan-status-text').childNodes[0].nodeValue = '파일 스캔 중... ';
+                            document.getElementById('scan-current-file').textContent = status.current_file || '';
+                            countText.textContent = `${status.current} / ${status.total} (${percent}%)`;
+                            progressBar.style.width = `${percent}%`;
                         } else {
-                            scanBtn.textContent = '파일 검색 중...';
+                            document.getElementById('scan-status-text').childNodes[0].nodeValue = '디렉토리 검색 중... ';
                         }
                     } else {
                         // 스캔 완료
@@ -496,12 +454,11 @@ const App = {
                         ]);
 
                         document.getElementById('welcome-screen').classList.add('hidden');
+                        this._resetScanUI();
                         this.navigate('songs');
 
                         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
                         document.getElementById('nav-songs').classList.add('active');
-
-                        scanBtn.disabled = false;
                         this._resetScanButton(scanBtn);
                     }
                 } catch (e) {
@@ -548,6 +505,76 @@ const App = {
         this.toastTimer = setTimeout(() => {
             toast.classList.remove('show');
         }, duration);
+    },
+
+    // ─── 웹 디렉토리 탐색기 (Directory Browser) 로직 ───
+    _openDirBrowser() {
+        const modal = document.getElementById('dir-browser-modal');
+        modal.classList.remove('hidden');
+        
+        if (!this._dirBrowserBound) {
+            document.getElementById('btn-close-dir-browser').addEventListener('click', () => this._closeDirBrowser());
+            document.getElementById('btn-cancel-dir').addEventListener('click', () => this._closeDirBrowser());
+            document.getElementById('btn-select-dir').addEventListener('click', () => {
+                const currentPath = document.getElementById('dir-current-path').textContent;
+                document.getElementById('folder-path-input').value = currentPath;
+                this._closeDirBrowser();
+            });
+            this._dirBrowserBound = true;
+        }
+        
+        this._loadDirList('');
+    },
+
+    _closeDirBrowser() {
+        document.getElementById('dir-browser-modal').classList.add('hidden');
+    },
+
+    async _loadDirList(path) {
+        const container = document.getElementById('dir-list-container');
+        const pathEl = document.getElementById('dir-current-path');
+        container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-sec); font-size: 13px;">로딩 중...</div>';
+        
+        try {
+            const url = path ? `/api/tools/directories?path=${encodeURIComponent(path)}` : '/api/tools/directories';
+            const res = await fetch(url);
+            const data = await res.json();
+            
+            if (data.error) {
+                container.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--error); font-size: 13px;">${data.error}</div>`;
+                return;
+            }
+            
+            pathEl.textContent = data.current_path;
+            pathEl.title = data.current_path;
+            
+            if (data.directories.length === 0) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-sec); font-size: 13px;">하위 폴더가 없습니다.</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            data.directories.forEach(dir => {
+                const el = document.createElement('div');
+                el.className = 'dir-item';
+                
+                let icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`;
+                if (dir.name === '..') {
+                    icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>`;
+                    el.innerHTML = `${icon}<span>상위 폴더로 이동</span>`;
+                } else {
+                    el.innerHTML = `${icon}<span>${dir.name}</span>`;
+                }
+                
+                el.addEventListener('click', () => {
+                    this._loadDirList(dir.path);
+                });
+                container.appendChild(el);
+            });
+        } catch (e) {
+            console.error("디렉토리 로드 오류:", e);
+            container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--error); font-size: 13px;">경로를 불러올 수 없습니다.</div>';
+        }
     }
 };
 

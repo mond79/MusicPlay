@@ -930,21 +930,22 @@
                         <button class="btn-primary" id="btn-add-folder">추가</button>
                     </div>
                     
-                    <div style="margin-top: 16px; margin-bottom: 8px; font-weight: 500; font-size: 14px; display: flex; align-items: center; gap: 6px;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                        개별 곡 파일 추가
-                    </div>
-                    <p class="settings-desc" style="margin-bottom: 8px;">폴더 전체가 아닌 개별 음악 파일(.mp3, .flac 등)을 선택해 보관함에 즉시 스캔합니다.</p>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn-secondary" id="btn-add-files" style="flex: 1;">
-                            개별 파일 찾아보기 및 추가...
-                        </button>
-                    </div>
-
                     <button class="btn-secondary" id="btn-scan-all" style="margin-top: 16px; width: 100%;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
                         라이브러리 다시 스캔
                     </button>
+
+                    <!-- 스캔 진행률 표시 영역 (기본 숨김) -->
+                    <div id="scan-progress-container" style="display: none; margin-top: 16px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; color: var(--text-sec);">
+                            <span id="scan-status-text">스캔 진행 중... <span id="scan-current-file" style="opacity: 0.6; margin-left: 6px;"></span></span>
+                            <span id="scan-count-text">0 / 0</span>
+                        </div>
+                        <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                            <div id="scan-progress-bar" style="height: 100%; width: 0%; background: var(--accent); transition: width 0.3s ease;"></div>
+                        </div>
+                    </div>
+
                     <button class="btn-secondary" id="btn-reset-library" style="margin-top: 8px; width: 100%; color: var(--error); border-color: var(--error);">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                         보관함 완전 초기화 (모든 곡 지우기)
@@ -1097,6 +1098,34 @@
     </div>
 
     <!-- ═══ 오디오 요소 ═══ -->
+    <!-- ═══ 웹 디렉토리 탐색기 모달 ═══ -->
+    <div id="dir-browser-modal" class="dialog-overlay hidden" style="z-index: 10002;">
+        <div class="settings-dialog" style="width: 450px; max-height: 80vh; display: flex; flex-direction: column;">
+            <div class="dialog-header-simple">
+                <h3>폴더 찾아보기</h3>
+                <button class="btn-icon" id="btn-close-dir-browser">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            
+            <!-- 현재 경로 표시줄 -->
+            <div style="padding: 12px 20px; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-sec)" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                <div id="dir-current-path" style="font-size: 13px; color: var(--text-sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: rtl; text-align: left;">/</div>
+            </div>
+
+            <!-- 디렉토리 리스트 -->
+            <div id="dir-list-container" style="flex: 1; overflow-y: auto; padding: 8px;">
+                <!-- JS에서 동적 렌더링 됨 -->
+            </div>
+
+            <div class="dialog-footer">
+                <button class="btn-secondary" id="btn-cancel-dir">취소</button>
+                <button class="btn-primary" id="btn-select-dir">이 폴더 선택</button>
+            </div>
+        </div>
+    </div>
+
     <audio id="audio-element" preload="auto"></audio>
 
     <!-- ═══ 모바일 하단 탭 바 (Mobile Bottom Nav) ═══ -->

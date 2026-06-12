@@ -639,5 +639,15 @@ def update_artist_bio(artist_name, bio):
     conn.close()
 
 
+def update_song_lyrics(song_id, lyrics):
+    """특정 곡의 가사를 데이터베이스에 저장합니다."""
+    conn = get_db()
+    conn.execute(
+        'UPDATE songs SET lyrics = ? WHERE id = ?',
+        (lyrics, song_id)
+    )
+    conn.commit()
+    conn.close()
+
 # 모듈 로드 시 DB 초기화
 init_db()

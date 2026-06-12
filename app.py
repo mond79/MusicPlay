@@ -208,6 +208,8 @@ def api_fetch_lyrics(song_id):
                     
                 lyrics = best_match.get('syncedLyrics') or best_match.get('plainLyrics')
                 if lyrics:
+                    # 가져온 가사를 DB에 영구 저장 (캐싱)
+                    db.update_song_lyrics(song_id, lyrics)
                     return jsonify({'success': True, 'lyrics': lyrics})
         
         return jsonify({'error': '가사를 찾을 수 없습니다'}), 404
@@ -622,39 +624,60 @@ def api_reset_library():
     return jsonify({'success': True})
 
 
-@app.route('/api/tools/browse-folder')
-def api_browse_folder():
-    """OS 기본 폴더 선택 창 띄우기"""
-    import tkinter as tk
-    from tkinter import filedialog
+@app.route('/api/tools/directories')
+def api_get_directories():
+    """서버의 디렉토리 목록을 안전하게 반환합니다."""
+    path_param = request.args.get('path', '')
     
-    root = tk.Tk()
-    root.withdraw()
-    root.attributes('-topmost', True)
-    folder_path = filedialog.askdirectory(parent=root, title="음악 폴더 선택")
-    root.destroy()
+    # 윈도우 환경에서 빈 경로 요청 시 전체 드라이브(C:, D:, E: 등) 목록을 반환 (내 PC 개념)
+    if not path_param and os.name == 'nt':
+        import string
+        drives = []
+        for d in string.ascii_uppercase:
+            drive_path = f"{d}:\\"
+            if os.path.exists(drive_path):
+                drives.append({'name': f"{d}: 드라이브", 'path': drive_path})
+        return jsonify({'current_path': '내 PC (전체 드라이브 목록)', 'directories': drives})
+        
+    # 기본 경로는 시스템 루트
+    if not path_param:
+        path_param = '/'
     
-    return jsonify({'path': folder_path or ''})
-
-
-@app.route('/api/tools/browse-files')
-def api_browse_files():
-    """OS 기본 파일 다중 선택 창 띄우기"""
-    import tkinter as tk
-    from tkinter import filedialog
-    
-    root = tk.Tk()
-    root.withdraw()
-    root.attributes('-topmost', True)
-    
-    file_paths = filedialog.askopenfilenames(
-        parent=root, 
-        title="음악 파일 선택",
-        filetypes=[("Audio Files", "*.mp3 *.flac *.m4a *.wav *.ogg"), ("All Files", "*.*")]
-    )
-    root.destroy()
-    
-    return jsonify({'paths': list(file_paths)})
+    try:
+        # 경로 순회 보안 (Directory Traversal 방어)
+        target_path = os.path.realpath(path_param)
+        
+        if not os.path.isdir(target_path):
+            return jsonify({'error': '유효하지 않은 폴더 경로입니다'}), 400
+            
+        directories = []
+        
+        # 상위 디렉토리로 가기 위한 항목 추가
+        parent_dir = os.path.dirname(target_path)
+        if target_path != parent_dir:
+            directories.append({'name': '..', 'path': parent_dir})
+        elif os.name == 'nt':
+            # 드라이브 루트(C:\, D:\ 등)에 위치한 경우, '..' 누르면 빈 문자열을 요청하여 전체 드라이브 목록을 조회
+            directories.append({'name': '..', 'path': ''})
+            
+        # 권한 없는 폴더 접근 대비 에러 무시
+        try:
+            items = os.listdir(target_path)
+        except PermissionError:
+            items = []
+            
+        for item in items:
+            full_path = os.path.join(target_path, item)
+            # 숨김 폴더(.) 제외 및 디렉토리만 취합
+            if os.path.isdir(full_path) and not item.startswith('.'):
+                directories.append({'name': item, 'path': full_path})
+                
+        # 이름순 정렬 ('..' 은 항상 맨 위로)
+        directories = sorted(directories, key=lambda x: (x['name'] != '..', x['name'].lower()))
+        
+        return jsonify({'current_path': target_path, 'directories': directories})
+    except Exception as e:
+        return jsonify({'error': f'디렉토리 접근 오류: {str(e)}'}), 403
 
 @app.route('/api/scan/files', methods=['POST'])
 def api_scan_files():

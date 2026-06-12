@@ -2822,3 +2822,62 @@ input[type="search"]::-webkit-search-cancel-button {
         padding-bottom: 40px !important; /* 안전 하단 여백 추가 */
     }
 }
+
+/* ═══════════════════════════════════
+   디렉토리 모달 (웹 폴더 탐색기) 스타일
+   ═══════════════════════════════════ */
+.dir-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+    color: var(--text-primary);
+    font-size: 14px;
+}
+.dir-item:hover {
+    background-color: var(--bg-hover);
+}
+.dir-item.selected {
+    background-color: var(--accent-subtle);
+    border: 1px solid var(--accent-focus);
+}
+.dir-item svg {
+    color: var(--accent);
+    flex-shrink: 0;
+}
+.dir-item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ═══════════════════════════════════
+   다이얼로그 애니메이션 (부드러운 팝업)
+   ═══════════════════════════════════ */
+.dialog-overlay {
+    transition: opacity 0.25s ease-out, visibility 0.25s ease-out !important;
+}
+.dialog-overlay.hidden {
+    /* 기존 전역 hidden(display:none) 대신 투명도 제어로 부드럽게 숨김 */
+    display: flex !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+.dialog-overlay:not(.hidden) .settings-dialog {
+    animation: dialogPopUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1.1) forwards;
+}
+
+@keyframes dialogPopUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
