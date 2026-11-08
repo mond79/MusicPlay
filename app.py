@@ -42,7 +42,10 @@ CORS(app)
 def add_header(response):
     if request.path.startswith('/api/'):
         response.cache_control.no_store = True
+        response.cache_control.no_cache = True
         response.cache_control.max_age = 0
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
     return response
 
 # MIME 타입 등록
@@ -98,11 +101,39 @@ def api_get_song(song_id):
 
 @app.route('/api/songs/<int:song_id>', methods=['PUT'])
 def api_update_song(song_id):
-    """곡 메타데이터 업데이트 (DB + 파일 태그)"""
+    """곡 메타데이터 업데이트 (DB + 파일 태그 + 미리보기 커버 확정 저장)"""
     data = request.get_json()
     song = db.get_song(song_id)
     if not song:
         return jsonify({'error': '곡을 찾을 수 없습니다'}), 404
+
+    # 미리보기 커버(cover_base64)가 함께 전달된 경우 실제 파일 및 캐시 커버에 저장
+    cover_b64 = data.pop('cover_base64', None)
+    if cover_b64:
+        try:
+            import base64
+            import hashlib
+            from PIL import Image
+            import io
+
+            if ',' in cover_b64:
+                cover_b64 = cover_b64.split(',', 1)[1]
+            image_data = base64.b64decode(cover_b64)
+
+            if os.path.exists(song['file_path']):
+                tag_writer.write_cover_art(song['file_path'], image_data, 'image/jpeg')
+
+            scanner.ensure_cover_dir()
+            path_hash = hashlib.md5(song['file_path'].encode('utf-8')).hexdigest()[:16]
+            cover_path = os.path.join(scanner.COVER_DIR, f'{path_hash}.jpg')
+
+            img = Image.open(io.BytesIO(image_data)).convert('RGB')
+            img.thumbnail((500, 500), Image.Resampling.LANCZOS)
+            img.save(cover_path, 'JPEG', quality=92)
+
+            data['dominant_color'] = scanner.get_dominant_color(cover_path)
+        except Exception as e:
+            print(f"미리보기 커버 저장 오류: {e}")
 
     # DB 업데이트
     db.update_song(song_id, data)
@@ -320,6 +351,101 @@ def api_update_cover(song_id):
     db.update_song(song_id, {'dominant_color': new_color})
 
     return jsonify({'success': True, 'dominant_color': new_color})
+
+
+@app.route('/api/songs/<int:song_id>/auto-tag', methods=['POST'])
+def api_auto_tag_song(song_id):
+    """Apple iTunes Search API를 사용하여 고화질 앨범 커버 및 메타데이터 자동 매칭"""
+    import urllib.request
+    import urllib.parse
+    import json
+    import hashlib
+    from PIL import Image
+    import io
+
+    song = db.get_song(song_id)
+    if not song:
+        return jsonify({'error': '곡을 찾을 수 없습니다'}), 404
+
+    req_data = request.get_json(silent=True) or {}
+    title = (req_data.get('title') or song.get('title') or '').strip()
+    artist = (req_data.get('artist') or song.get('artist') or '').strip()
+
+    if not title:
+        return jsonify({'error': '검색할 노래 제목이 필요합니다'}), 400
+
+    # 검색어 정제: 괄호나 불필요한 파일명 기호 제거 버전도 대비
+    search_query = f"{title} {artist}".strip()
+
+    def query_itunes(term, country='KR'):
+        url = f"https://itunes.apple.com/search?term={urllib.parse.quote(term)}&media=music&entity=song&country={country}&limit=5"
+        req = urllib.request.Request(url, headers={'User-Agent': 'MondPlay/1.0'})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            return json.loads(resp.read().decode('utf-8')).get('results', [])
+
+    try:
+        results = query_itunes(search_query, 'KR')
+        if not results:
+            results = query_itunes(search_query, 'US')
+        if not results and artist:
+            # 제목만으로 재시도
+            results = query_itunes(title, 'KR') or query_itunes(title, 'US')
+
+        if not results:
+            return jsonify({'error': '일치하는 음원 정보를 찾을 수 없습니다'}), 404
+
+        best = results[0]
+
+        # 메타데이터 추출
+        matched_meta = {
+            'title': best.get('trackName') or title,
+            'artist': best.get('artistName') or artist,
+            'album': best.get('collectionName') or song.get('album', ''),
+            'album_artist': best.get('collectionArtistName') or best.get('artistName') or song.get('album_artist', ''),
+            'genre': best.get('primaryGenreName') or song.get('genre', ''),
+            'track_number': best.get('trackNumber') or song.get('track_number', 0),
+            'track_total': best.get('trackCount') or song.get('track_total', 0),
+            'disc_number': best.get('discNumber') or song.get('disc_number', 1),
+            'disc_total': best.get('discCount') or song.get('disc_total', 1),
+        }
+
+        release_date = best.get('releaseDate', '')
+        if release_date and len(release_date) >= 4 and release_date[:4].isdigit():
+            matched_meta['year'] = int(release_date[:4])
+        else:
+            matched_meta['year'] = song.get('year', 0)
+
+        # 고화질 앨범 커버 다운로드 (DB/파일에 즉시 저장하지 않고 미리보기용 Base64로 반환)
+        artwork_url = best.get('artworkUrl100', '')
+        cover_data_url = None
+
+        if artwork_url:
+            import re
+            import base64
+            hi_res_url = re.sub(r'\d+x\d+bb', '600x600bb', artwork_url)
+            try:
+                img_req = urllib.request.Request(hi_res_url, headers={'User-Agent': 'MondPlay/1.0'})
+                with urllib.request.urlopen(img_req, timeout=8) as img_resp:
+                    image_data = img_resp.read()
+
+                img = Image.open(io.BytesIO(image_data)).convert('RGB')
+                img.thumbnail((500, 500), Image.Resampling.LANCZOS)
+                buf = io.BytesIO()
+                img.save(buf, 'JPEG', quality=92)
+                b64_str = base64.b64encode(buf.getvalue()).decode('ascii')
+                cover_data_url = f"data:image/jpeg;base64,{b64_str}"
+            except Exception as cov_err:
+                print(f"앨범 커버 미리보기 다운로드 실패: {cov_err}")
+
+        # 주의: 사용자가 '확인(저장)'을 누르기 전까지 DB나 원본 파일은 절대 수정하지 않음!
+        return jsonify({
+            'success': True,
+            'meta': matched_meta,
+            'cover_data_url': cover_data_url
+        })
+    except Exception as e:
+        print(f"자동 태그 매칭 오류: {e}")
+        return jsonify({'error': '자동 매칭 중 오류가 발생했습니다'}), 500
 
 
 @app.route('/api/songs/<int:song_id>/like', methods=['POST'])

@@ -5,6 +5,8 @@
 
 const SongInfo = {
     currentSong: null,
+    originalSongBackup: null,
+    pendingCoverBase64: null,
     overlay: null,
 
     init() {
@@ -20,6 +22,11 @@ const SongInfo = {
     async open(songId) {
         const res = await fetch(`/api/songs/${songId}`);
         this.currentSong = await res.json();
+        this.originalSongBackup = { ...this.currentSong };
+        this.pendingCoverBase64 = null;
+
+        const undoBar = document.getElementById('auto-tag-undo-bar');
+        if (undoBar) undoBar.classList.add('hidden');
 
         this._populateFields();
         this.overlay.classList.remove('hidden');
@@ -31,6 +38,10 @@ const SongInfo = {
     close() {
         this.overlay.classList.add('hidden');
         this.currentSong = null;
+        this.originalSongBackup = null;
+        this.pendingCoverBase64 = null;
+        const undoBar = document.getElementById('auto-tag-undo-bar');
+        if (undoBar) undoBar.classList.add('hidden');
     },
 
     // ─── 탭 ───
@@ -143,6 +154,100 @@ const SongInfo = {
 
             fileInput.value = '';
         });
+
+        // ✨ iTunes API 기반 태그 & 고화질 커버 자동 매칭 (미리보기 방식)
+        const autoBtns = [
+            document.getElementById('btn-auto-tag'),
+            document.getElementById('btn-auto-artwork')
+        ].filter(Boolean);
+
+        autoBtns.forEach(btn => {
+            btn.addEventListener('click', () => this._autoMatchMetadata(autoBtns));
+        });
+
+        // ↩ 원래대로 되돌리기 버튼
+        const undoBtn = document.getElementById('btn-undo-auto-tag');
+        if (undoBtn) {
+            undoBtn.addEventListener('click', () => this._restoreOriginalMetadata());
+        }
+    },
+
+    _restoreOriginalMetadata() {
+        if (!this.originalSongBackup || !this.currentSong) return;
+
+        Object.assign(this.currentSong, this.originalSongBackup);
+        this.pendingCoverBase64 = null;
+        this._populateFields();
+
+        const undoBar = document.getElementById('auto-tag-undo-bar');
+        if (undoBar) undoBar.classList.add('hidden');
+
+        App.showToast('↩ 변경 전 원래 곡 정보로 되돌렸습니다');
+    },
+
+    async _autoMatchMetadata(buttons) {
+        if (!this.currentSong) return;
+
+        const originalHtmls = buttons.map(b => b.innerHTML);
+        buttons.forEach(b => {
+            b.innerHTML = '⏳ 검색 중...';
+            b.disabled = true;
+        });
+
+        try {
+            const currentTitle = document.getElementById('info-title').value.trim() || this.currentSong.title;
+            const currentArtist = document.getElementById('info-artist').value.trim() || this.currentSong.artist;
+
+            const res = await fetch(`/api/songs/${this.currentSong.id}/auto-tag`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: currentTitle, artist: currentArtist })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                const meta = data.meta;
+
+                // 변경 전 원래 곡 정보 배너 표시
+                const undoBar = document.getElementById('auto-tag-undo-bar');
+                const origText = document.getElementById('auto-tag-orig-text');
+                if (undoBar && origText && this.originalSongBackup) {
+                    const origTitle = this.originalSongBackup.title || '제목 없음';
+                    const origArtist = this.originalSongBackup.artist || '아티스트 없음';
+                    origText.textContent = `${origTitle} — ${origArtist}`;
+                    undoBar.classList.remove('hidden');
+                }
+
+                // 폼 입력칸에만 미리보기로 채우기 (DB/파일은 '확인' 버튼 누를 때 저장)
+                Object.assign(this.currentSong, meta);
+                this._populateFields();
+
+                // 커버 이미지 미리보기 반영
+                if (data.cover_data_url) {
+                    this.pendingCoverBase64 = data.cover_data_url;
+                    const artworkImg = document.getElementById('info-artwork');
+                    const headerImg = document.getElementById('dialog-cover');
+                    artworkImg.src = data.cover_data_url;
+                    artworkImg.classList.add('visible');
+                    document.getElementById('artwork-no-cover').style.display = 'none';
+                    headerImg.src = data.cover_data_url;
+                    headerImg.classList.add('visible');
+                    document.querySelector('.dialog-no-cover').style.display = 'none';
+                }
+
+                App.showToast('✨ 미리보기가 적용되었습니다. [확인]을 눌러야 최종 저장됩니다!');
+            } else {
+                App.showToast(data.error || '일치하는 음원 정보를 찾지 못했습니다.');
+            }
+        } catch (err) {
+            console.error('자동 태그 매칭 오류:', err);
+            App.showToast('자동 매칭 중 오류가 발생했습니다.');
+        } finally {
+            buttons.forEach((b, i) => {
+                b.innerHTML = originalHtmls[i];
+                b.disabled = false;
+            });
+        }
     },
 
     // ─── 가사 자동 검색 ───
@@ -240,7 +345,8 @@ const SongInfo = {
 
         const headerImg = document.getElementById('dialog-cover');
         const headerNoCover = document.querySelector('.dialog-no-cover');
-        headerImg.src = `/api/songs/${s.id}/cover`;
+        const coverVer = this._coverTimestamp || '';
+        headerImg.src = `/api/songs/${s.id}/cover${coverVer ? '?t=' + coverVer : ''}`;
         headerImg.onload = () => { headerImg.classList.add('visible'); headerNoCover.style.display = 'none'; };
         headerImg.onerror = () => { headerImg.classList.remove('visible'); headerNoCover.style.display = 'flex'; };
 
@@ -289,7 +395,7 @@ const SongInfo = {
         // 탭 2: 앨범 표지
         const artworkImg = document.getElementById('info-artwork');
         const artworkNoCover = document.getElementById('artwork-no-cover');
-        artworkImg.src = `/api/songs/${s.id}/cover`;
+        artworkImg.src = `/api/songs/${s.id}/cover${coverVer ? '?t=' + coverVer : ''}`;
         artworkImg.onload = () => { artworkImg.classList.add('visible'); artworkNoCover.style.display = 'none'; };
         artworkImg.onerror = () => { artworkImg.classList.remove('visible'); artworkNoCover.style.display = 'flex'; };
 
@@ -335,20 +441,41 @@ const SongInfo = {
     async _save() {
         if (!this.currentSong) return;
 
+        const savedSongId = this.currentSong.id;
+        const hadCoverUpdate = !!this.pendingCoverBase64;
         const data = this._collectFormData();
 
         try {
-            await fetch(`/api/songs/${this.currentSong.id}`, {
+            const res = await fetch(`/api/songs/${savedSongId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
+            const result = await res.json();
+
+            const ts = Date.now();
+            this._coverTimestamp = ts;
 
             App.showToast('노래 정보가 저장되었습니다');
 
             // 라이브러리 새로고침
-            await Library.loadSongs();
+            await Promise.all([Library.loadSongs(), Library.loadAlbums(), Library.loadArtists()]);
             App.refreshCurrentView();
+
+            if (hadCoverUpdate) {
+                document.querySelectorAll(`.song-item[data-song-id="${savedSongId}"] img.song-mini-cover`).forEach(img => {
+                    img.src = `/api/songs/${savedSongId}/cover?t=${ts}`;
+                });
+            }
+
+            if (Player.currentSong() && Player.currentSong().id === savedSongId && result.song) {
+                Object.assign(Player.currentSong(), result.song);
+                Player._updateNowPlaying(Player.currentSong());
+                if (hadCoverUpdate) {
+                    const playerCover = document.getElementById('player-cover');
+                    if (playerCover) playerCover.src = `/api/songs/${savedSongId}/cover?t=${ts}`;
+                }
+            }
 
             this.close();
         } catch (e) {
@@ -400,6 +527,7 @@ const SongInfo = {
             sort_artist: document.getElementById('info-sort-artist').value,
             sort_album: document.getElementById('info-sort-album').value,
             sort_album_artist: document.getElementById('info-sort-album-artist').value,
+            ...(this.pendingCoverBase64 ? { cover_base64: this.pendingCoverBase64 } : {})
         };
     },
 
