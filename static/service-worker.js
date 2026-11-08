@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mondplay-v3';
+const CACHE_NAME = 'mondplay-v5';
 
 // 서비스 워커 설치: 오프라인 캐시는 PWA 뱃지 조건 충족을 위해 기본적으로 구현
 self.addEventListener('install', (event) => {
@@ -57,7 +57,7 @@ self.addEventListener('fetch', (event) => {
     }
     
     event.respondWith(
-        fetch(event.request).then((networkResponse) => {
+        fetch(event.request, { cache: 'no-store' }).then((networkResponse) => {
             // 네트워크 요청 성공 시 캐시에 최신 파일 덮어쓰기
             return caches.open(CACHE_NAME).then((cache) => {
                 cache.put(event.request, networkResponse.clone());

@@ -40,7 +40,7 @@ CORS(app)
 
 @app.after_request
 def add_header(response):
-    if request.path.startswith('/api/'):
+    if request.path.startswith('/api/') or request.path.startswith('/static/') or request.path in ('/', '/service-worker.js', '/manifest.json'):
         response.cache_control.no_store = True
         response.cache_control.no_cache = True
         response.cache_control.max_age = 0

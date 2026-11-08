@@ -139,6 +139,25 @@ const App = {
             Equalizer.toggleNormalization(e.target.checked);
             App.showToast(e.target.checked ? '볼륨 노멀라이제이션 ON' : '볼륨 노멀라이제이션 OFF');
         });
+
+        // 스마트 크로스페이드 슬라이더
+        const cfSlider = document.getElementById('crossfade-slider');
+        const cfVal = document.getElementById('crossfade-val');
+        if (cfSlider && cfVal) {
+            const savedCf = parseInt(localStorage.getItem('mp-crossfade')) || 0;
+            cfSlider.value = savedCf;
+            cfVal.textContent = savedCf > 0 ? `${savedCf}초` : '해제';
+
+            cfSlider.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value) || 0;
+                cfVal.textContent = val > 0 ? `${val}초` : '해제';
+                Player.setCrossfade(val);
+            });
+            cfSlider.addEventListener('change', (e) => {
+                const val = parseInt(e.target.value) || 0;
+                this.showToast(val > 0 ? `스마트 크로스페이드: ${val}초` : '스마트 크로스페이드 해제');
+            });
+        }
     },
 
     _bindSearch() {

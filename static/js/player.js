@@ -17,6 +17,9 @@ const Player = {
     isDragging: false,
     playbackRate: 1.0,   // 재생 속도
     speedOptions: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0],
+    crossfadeSeconds: 0, // 크로스페이드 시간 (0 = 해제, 1~8초)
+    _isCrossfadingOut: false,
+    _crossfadeInTimer: null,
 
     // ─── LRC 싱크 가사 ───
     lrcLines: [],        // [{ time: 초, text: '가사' }, ...]
@@ -55,6 +58,12 @@ const Player = {
             this.audio.playbackRate = this.playbackRate;
             this._updateSpeedUI();
         }
+
+        // 저장된 크로스페이드 설정 복원
+        const savedCrossfade = localStorage.getItem('mp-crossfade');
+        if (savedCrossfade !== null) {
+            this.crossfadeSeconds = parseInt(savedCrossfade) || 0;
+        }
     },
 
     _bindEvents() {
@@ -64,6 +73,9 @@ const Player = {
             if (!this.isDragging) {
                 this._updateProgress();
             }
+            // 스마트 크로스페이드 (곡 종료 직전 볼륨 페이드아웃)
+            this._handleCrossfadeTimeUpdate();
+
             // LRC 싱크 가사 업데이트 (동적 곡별 오프셋 적용)
             if (this.isLrcMode && !document.getElementById('lyrics-panel').classList.contains('hidden')) {
                 const offset = this._getCurrentLrcOffset();
@@ -379,15 +391,28 @@ const Player = {
 
         if (!song) return;
 
+        const shouldFadeIn = this._isCrossfadingOut && this.crossfadeSeconds > 0;
+        this._isCrossfadingOut = false;
+        if (this._crossfadeInTimer) {
+            clearInterval(this._crossfadeInTimer);
+            this._crossfadeInTimer = null;
+        }
+
         // 오디오 소스 설정
         this.audio.src = `/api/songs/${song.id}/stream`;
+        this.audio.playbackRate = this.playbackRate;
+        this.audio.volume = shouldFadeIn ? 0 : this.volume;
         this.audio.load();
 
         try {
             if (window.Equalizer) Equalizer.resume();
             await this.audio.play();
+            if (shouldFadeIn) {
+                this._startCrossfadeIn();
+            }
         } catch (e) {
             console.error('재생 시작 오류:', e);
+            this.audio.volume = this.volume;
         }
 
         // UI 업데이트
@@ -1343,5 +1368,58 @@ const Player = {
             const formatted = (offset > 0 ? '+' : '') + offset.toFixed(1) + 's';
             valEl.textContent = formatted;
         }
+    },
+
+    // ─── 스마트 크로스페이드 ───
+
+    setCrossfade(seconds) {
+        this.crossfadeSeconds = Math.max(0, Math.min(8, parseInt(seconds) || 0));
+        localStorage.setItem('mp-crossfade', this.crossfadeSeconds);
+        if (this.crossfadeSeconds === 0) {
+            this._isCrossfadingOut = false;
+            this.audio.volume = this.volume;
+        }
+    },
+
+    _handleCrossfadeTimeUpdate() {
+        if (this.crossfadeSeconds <= 0 || !this.isPlaying || this.isDragging) return;
+        const duration = this.audio.duration;
+        const current = this.audio.currentTime;
+        if (!duration || isNaN(duration) || duration <= this.crossfadeSeconds * 2) return;
+
+        const remaining = duration - current;
+        if (remaining <= this.crossfadeSeconds && remaining > 0.15) {
+            this._isCrossfadingOut = true;
+            const ratio = Math.max(0, Math.min(1, remaining / this.crossfadeSeconds));
+            this.audio.volume = this.volume * ratio;
+        } else if (remaining <= 0.15 && this._isCrossfadingOut) {
+            // 자연스럽게 다음 곡으로 전환 트리거
+            this._onTrackEnd();
+        } else if (remaining > this.crossfadeSeconds && this._isCrossfadingOut && !this._crossfadeInTimer) {
+            // 사용자가 탐색 바를 앞으로 되감은 경우 볼륨 원복
+            this._isCrossfadingOut = false;
+            this.audio.volume = this.volume;
+        }
+    },
+
+    _startCrossfadeIn() {
+        const fadeMs = Math.min(this.crossfadeSeconds * 1000, 4000);
+        const steps = 20;
+        const interval = fadeMs / steps;
+        let step = 0;
+
+        if (this._crossfadeInTimer) clearInterval(this._crossfadeInTimer);
+        this._crossfadeInTimer = setInterval(() => {
+            step++;
+            const progress = step / steps;
+            const eased = 1 - Math.pow(1 - progress, 2);
+            this.audio.volume = this.volume * eased;
+
+            if (step >= steps) {
+                clearInterval(this._crossfadeInTimer);
+                this._crossfadeInTimer = null;
+                this.audio.volume = this.volume;
+            }
+        }, interval);
     }
 };

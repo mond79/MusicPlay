@@ -295,6 +295,8 @@ const Library = {
         this._hideAllViews();
         const view = document.getElementById('view-songs');
         view.classList.remove('hidden');
+        const viewHeaderH2 = view.querySelector('.view-header h2');
+        if (viewHeaderH2) viewHeaderH2.textContent = '노래';
         document.getElementById('songs-count').textContent = `${this.songs.length}곡`;
 
         const sortSelect = document.getElementById('songs-sort');

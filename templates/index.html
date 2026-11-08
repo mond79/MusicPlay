@@ -977,6 +977,16 @@
                             <span class="slider round"></span>
                         </label>
                     </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0 4px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 8px;">
+                        <div>
+                            <div style="font-size: 14px; font-weight: 500;">스마트 크로스페이드 (Crossfade)</div>
+                            <div style="font-size: 12px; color: var(--text-tertiary); margin-top: 2px;">곡이 끝날 때 소리를 서서히 줄이고 다음 곡을 부드럽게 페이드인합니다</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" id="crossfade-slider" min="0" max="8" step="1" value="0" style="width: 100px; accent-color: var(--accent);">
+                            <span id="crossfade-val" style="font-size: 13px; font-weight: 600; color: var(--accent); min-width: 36px; text-align: right;">해제</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1164,15 +1174,15 @@
     <!-- ═══ JavaScript ═══ -->
     <script src="/static/js/color-theme.js?v=32"></script>
     <script src="/static/js/equalizer.js?v=33"></script>
-    <script src="/static/js/player.js?v=40"></script>
-    <script src="/static/js/library.js?v=36"></script>
-    <script src="/static/js/context-menu.js?v=33"></script>
+    <script src="/static/js/player.js?v=44"></script>
+    <script src="/static/js/library.js?v=37"></script>
+    <script src="/static/js/context-menu.js?v=37"></script>
     <script src="/static/js/song-info.js?v=35"></script>
     <script src="/static/js/playlist.js?v=32"></script>
     <script src="/static/js/mini-player.js?v=38"></script>
     <script src="/static/js/stats.js?v=33"></script>
     <script src="/static/js/visualizer.js?v=32"></script>
-    <script src="/static/js/app.js?v=36"></script>
+    <script src="/static/js/app.js?v=37"></script>
     <script src="/static/js/wrapped.js?v=28"></script>
     
     <!-- PWA Service Worker Registration -->
