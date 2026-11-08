@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css?v=44">
+    <link rel="stylesheet" href="/static/css/style.css?v=45">
     <link rel="stylesheet" href="/static/css/player.css?v=27">
     <link rel="stylesheet" href="/static/css/dialog.css?v=27">
     <link rel="stylesheet" href="/static/css/context-menu.css?v=27">
@@ -111,7 +111,7 @@
                 </div>
                 <div class="search-container">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input type="search" id="search-input" placeholder="검색" autocomplete="off">
+                    <input type="search" id="search-input" placeholder="제목, 아티스트, 가사, 초성(ㄹㅅㄹㅍ) 검색" autocomplete="off">
                 </div>
             </header>
 
@@ -620,6 +620,7 @@
                 </button>
                 <div id="sleep-timer-menu" class="sleep-timer-menu hidden">
                     <div class="sleep-timer-title">취침 타이머</div>
+                    <button class="sleep-timer-option" data-mode="end-of-track">🎵 현재 곡 끝날 때</button>
                     <button class="sleep-timer-option" data-minutes="15">15분</button>
                     <button class="sleep-timer-option" data-minutes="30">30분</button>
                     <button class="sleep-timer-option" data-minutes="45">45분</button>
@@ -1151,8 +1152,8 @@
     <!-- ═══ JavaScript ═══ -->
     <script src="/static/js/color-theme.js?v=32"></script>
     <script src="/static/js/equalizer.js?v=33"></script>
-    <script src="/static/js/player.js?v=38"></script>
-    <script src="/static/js/library.js?v=35"></script>
+    <script src="/static/js/player.js?v=40"></script>
+    <script src="/static/js/library.js?v=36"></script>
     <script src="/static/js/context-menu.js?v=33"></script>
     <script src="/static/js/song-info.js?v=32"></script>
     <script src="/static/js/playlist.js?v=32"></script>

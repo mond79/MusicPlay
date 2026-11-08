@@ -144,17 +144,98 @@ def get_song(song_id):
     return dict(song) if song else None
 
 
+CHOSUNG_LIST = [
+    'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ',
+    'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'
+]
+
+
+def extract_chosung(text):
+    """문자열에서 한글 음절을 초성으로 변환합니다."""
+    if not text:
+        return ''
+    result = []
+    for char in text:
+        code = ord(char)
+        if 0xAC00 <= code <= 0xD7A3:
+            chosung_idx = (code - 0xAC00) // 588
+            result.append(CHOSUNG_LIST[chosung_idx])
+        else:
+            result.append(char)
+    return ''.join(result)
+
+
+def is_chosung_query(query):
+    """검색어에 한글 초성(ㄱ-ㅎ)이 포함되어 있는지 확인합니다."""
+    return any('ㄱ' <= c <= 'ㅎ' for c in query)
+
+
+def clean_lyrics_text(lyrics):
+    """LRC 타임코드([00:12.34])를 제거하고 순수 가사 텍스트만 반환합니다."""
+    import re
+    if not lyrics:
+        return ''
+    cleaned = re.sub(r'\[\d{1,2}:\d{2}(?:\.\d{1,3})?\]', '', lyrics)
+    cleaned = re.sub(r'^\[(ti|ar|al|by|offset|re|ve):.*\]$', '', cleaned, flags=re.MULTILINE | re.IGNORECASE)
+    return cleaned.strip()
+
+
 def search_songs(query):
-    """제목, 아티스트, 앨범을 검색합니다."""
+    """제목, 아티스트, 앨범, 장르, 가사(LRC 포함) 및 한글 초성을 스마트 검색합니다."""
+    if not query or not query.strip():
+        return []
+
+    q_raw = query.strip()
+    q_lower = q_raw.lower()
+    q_no_space = q_lower.replace(' ', '')
+    has_chosung = is_chosung_query(q_raw)
+
     conn = get_db()
-    q = f'%{query}%'
-    songs = conn.execute('''
-        SELECT * FROM songs 
-        WHERE title LIKE ? OR artist LIKE ? OR album LIKE ? OR genre LIKE ?
-        ORDER BY title
-    ''', (q, q, q, q)).fetchall()
+    all_songs = conn.execute('SELECT * FROM songs ORDER BY title').fetchall()
     conn.close()
-    return [dict(s) for s in songs]
+
+    results = []
+    for row in all_songs:
+        s = dict(row)
+        title = s.get('title') or ''
+        artist = s.get('artist') or ''
+        album = s.get('album') or ''
+        genre = s.get('genre') or ''
+        lyrics = s.get('lyrics') or ''
+
+        # 1. 기본 텍스트 매칭 (제목, 아티스트, 앨범, 장르)
+        if (q_lower in title.lower() or
+            q_lower in artist.lower() or
+            q_lower in album.lower() or
+            q_lower in genre.lower()):
+            results.append(s)
+            continue
+
+        # 2. 한글 초성 매칭 (제목, 아티스트, 앨범 - 띄어쓰기 무시 지원)
+        if has_chosung:
+            t_cho = extract_chosung(title).lower()
+            ar_cho = extract_chosung(artist).lower()
+            al_cho = extract_chosung(album).lower()
+            if (q_lower in t_cho or q_no_space in t_cho.replace(' ', '') or
+                q_lower in ar_cho or q_no_space in ar_cho.replace(' ', '') or
+                q_lower in al_cho or q_no_space in al_cho.replace(' ', '')):
+                results.append(s)
+                continue
+
+        # 3. 가사 본문 매칭 (LRC 타임코드 제외 후 검색)
+        if lyrics:
+            cleaned_lyrics = clean_lyrics_text(lyrics)
+            if q_lower in cleaned_lyrics.lower():
+                # 매칭된 가사 줄 추출
+                for line in cleaned_lyrics.split('\n'):
+                    line_str = line.strip()
+                    if q_lower in line_str.lower():
+                        s['matched_lyric'] = line_str
+                        break
+                results.append(s)
+                continue
+
+    return results
 
 
 def insert_song(song_data):

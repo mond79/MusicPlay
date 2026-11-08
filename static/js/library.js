@@ -75,12 +75,18 @@ const Library = {
             // 번호
             cols += `<div class="song-num">${index + 1}</div>`;
 
-            // 제목 + 미니 커버
+            // 제목 + 미니 커버 (가사 매칭 시 스니펫 배지 표시)
+            const lyricSnippetHtml = song.matched_lyric
+                ? `<span class="song-lyric-match" title="${this._escapeHtml(song.matched_lyric)}">🎤 "${this._escapeHtml(song.matched_lyric)}"</span>`
+                : '';
             cols += `
                 <div class="song-title-cell">
                     <img class="song-mini-cover lazy-cover" data-src="/api/songs/${song.id}/cover" alt=""
                          onerror="this.style.background='var(--surface)'; this.removeAttribute('src');">
-                    <span class="song-title">${this._escapeHtml(song.title || '알 수 없는 곡')}</span>
+                    <div class="song-title-wrap">
+                        <span class="song-title">${this._escapeHtml(song.title || '알 수 없는 곡')}</span>
+                        ${lyricSnippetHtml}
+                    </div>
                 </div>
             `;
 

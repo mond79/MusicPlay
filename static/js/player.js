@@ -368,6 +368,9 @@ const Player = {
         if (queue) {
             this.queue = [...queue];
             this.currentIndex = index;
+            if (this.isShuffle) {
+                this._buildShuffleOrder();
+            }
         }
 
         if (!song && this.queue.length > 0) {
@@ -463,6 +466,10 @@ const Player = {
         }
 
         if (this.isShuffle) {
+            // shuffleOrder가 비어있는데 큐에 다른 곡이 있다면 즉시 생성
+            if (this.shuffleOrder.length === 0 && this.queue.length > 1) {
+                this._buildShuffleOrder();
+            }
             // shuffleOrder 리스트를 따라 다음 위치로 이동
             const nextPos = this.shufflePos + 1;
             if (nextPos >= this.shuffleOrder.length) {
@@ -532,18 +539,25 @@ const Player = {
 
     // ─── 큐 관리 ───
 
-    playNext(song) {
-        const insertIndex = this.currentIndex + 1;
-        this.queue.splice(insertIndex, 0, song);
-        this._updateQueuePanel();
-        App.showToast(`"${song.title}" — 바로 다음에 재생됩니다`);
-    },
+        // 큐에 곡 추가 시 셔플 순서에도 반영
+        playNext(song) {
+            const insertIndex = this.currentIndex + 1;
+            this.queue.splice(insertIndex, 0, song);
+            if (this.isShuffle) {
+                this._buildShuffleOrder();
+            }
+            this._updateQueuePanel();
+            App.showToast(`"${song.title}" — 바로 다음에 재생됩니다`);
+        },
 
-    playLast(song) {
-        this.queue.push(song);
-        this._updateQueuePanel();
-        App.showToast(`"${song.title}" — 맨 나중에 재생됩니다`);
-    },
+        playLast(song) {
+            this.queue.push(song);
+            if (this.isShuffle) {
+                this._buildShuffleOrder();
+            }
+            this._updateQueuePanel();
+            App.showToast(`"${song.title}" — 맨 나중에 재생됩니다`);
+        },
 
     currentSong() {
         if (this.currentIndex >= 0 && this.currentIndex < this.queue.length) {
@@ -560,7 +574,6 @@ const Player = {
         localStorage.setItem('mp-shuffle', this.isShuffle);
         if (this.isShuffle) {
             this._buildShuffleOrder();
-            this.shufflePos = 0; // 다음 곡부터 시작
         } else {
             this.shuffleOrder = [];
             this.shufflePos = -1;
@@ -634,6 +647,12 @@ const Player = {
     // ─── 내부 함수 ───
 
     _onTrackEnd() {
+        if (this._sleepEndOfTrack) {
+            this._cancelSleepTimer();
+            this.audio.pause();
+            if (window.App) App.showToast('취침 타이머: 현재 곡 재생 후 정지되었습니다 🌙');
+            return;
+        }
         if (this.repeatMode === 'one') {
             this.audio.currentTime = 0;
             this.audio.play();
@@ -942,9 +961,9 @@ const Player = {
         const currentEl = document.getElementById('queue-current');
         const listEl = document.getElementById('queue-list');
 
-        // 셔플 모드에서 미리 다음 곡 예약이 안 돼 있으면 예약
-        if (this.isShuffle && this.shuffleNextIndex === -1 && this.queue.length > 1) {
-            this.shuffleNextIndex = this._pickShuffleIndex();
+        // 셔플 모드에서 shuffleOrder가 아직 안 만들어졌으면 생성
+        if (this.isShuffle && this.shuffleOrder.length === 0 && this.queue.length > 1) {
+            this._buildShuffleOrder();
         }
 
         // 현재 재생 중
@@ -1161,6 +1180,7 @@ const Player = {
     _sleepFadeInterval: null,
     _sleepEndTime: null,
     _sleepStatusInterval: null,
+    _sleepEndOfTrack: false,
     _originalVolume: 1,
 
     _bindSleepTimer() {
@@ -1180,6 +1200,15 @@ const Player = {
             }
         });
 
+        // '현재 곡 끝날 때' 옵션 클릭
+        const eotOpt = menu.querySelector('.sleep-timer-option[data-mode="end-of-track"]');
+        if (eotOpt) {
+            eotOpt.addEventListener('click', () => {
+                this._startSleepEndOfTrack();
+                menu.classList.add('hidden');
+            });
+        }
+
         // 시간 옵션 클릭
         menu.querySelectorAll('.sleep-timer-option[data-minutes]').forEach(opt => {
             opt.addEventListener('click', () => {
@@ -1197,6 +1226,22 @@ const Player = {
                 menu.classList.add('hidden');
             });
         }
+    },
+
+    _startSleepEndOfTrack() {
+        this._cancelSleepTimer();
+        this._sleepEndOfTrack = true;
+
+        const btn = document.getElementById('btn-sleep-timer');
+        const cancelBtn = document.getElementById('sleep-timer-cancel');
+        const statusEl = document.getElementById('sleep-timer-status');
+
+        btn.classList.add('timer-active');
+        cancelBtn.classList.remove('hidden');
+        statusEl.classList.remove('hidden');
+        statusEl.textContent = '현재 곡 종료 시 정지';
+
+        if (window.App) App.showToast('취침 타이머: 현재 곡이 끝나면 음악이 정지됩니다 🌙');
     },
 
     _startSleepTimer(minutes) {
@@ -1256,6 +1301,7 @@ const Player = {
         this._sleepFadeInterval = null;
         this._sleepStatusInterval = null;
         this._sleepEndTime = null;
+        this._sleepEndOfTrack = false;
         this._cleanupSleepTimer();
     },
 
@@ -1268,6 +1314,7 @@ const Player = {
         if (statusEl) { statusEl.classList.add('hidden'); statusEl.textContent = ''; }
         this._sleepTimerId = null;
         this._sleepFadeInterval = null;
+        this._sleepEndOfTrack = false;
         if (this._sleepStatusInterval) clearInterval(this._sleepStatusInterval);
         this._sleepStatusInterval = null;
     },
